@@ -182,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(data.localizacion)
           document.getElementById('ticket-localizacion').value = data.localizacion;
         if(data.dinero)
-          document.getElementById('ticket-dinero').value = data.dinero.replace(',', '.');
+          document.getElementById('ticket-dinero').value = parseFloat(data.dinero).toFixed(2);
         if(data.motivo)
           document.getElementById('ticket-motivo').value = data.motivo;
         if(data.fecha) {
@@ -320,9 +320,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(data.cantidad_neta) 
           document.getElementById('factura-neta').value = parseFloat(data.cantidad_neta).toFixed(2);
         if(data.retencion) {
-          let ret = data.retencion.replace(',', '.');
-          ret = Math.abs(parseFloat(ret));
-          document.getElementById('factura-retencion').value = ret.toFixed(2);
+          document.getElementById('factura-retencion').value = parseFloat(data.retencion).toFixed(2);
         }
         if(data.nombre_empresa)
           document.getElementById('factura-empresa').value = data.nombre_empresa;
