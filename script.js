@@ -316,9 +316,9 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
         if(data.cantidad_bruta) 
-          document.getElementById('factura-bruta').value = data.cantidad_bruta.replace(',', '.');
+          document.getElementById('factura-bruta').value = parseFloat(data.cantidad_bruta).toFixed(2);
         if(data.cantidad_neta) 
-          document.getElementById('factura-neta').value = data.cantidad_neta.replace(',', '.');
+          document.getElementById('factura-neta').value = parseFloat(data.cantidad_neta).toFixed(2);
         if(data.retencion) {
           let ret = data.retencion.replace(',', '.');
           ret = Math.abs(parseFloat(ret));
