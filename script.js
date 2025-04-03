@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   loginButton.addEventListener('click', function() {
     const password = loginPasswordInput.value;
-    fetch('http://localhost:5000/api/login', {
+    fetch('https://josemiguelruizguevara.com:5000/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: password })
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
       gasto: document.getElementById('desp-gasto').value
     };
 
-    fetch('http://localhost:5000/api/desplazamientos', {
+    fetch('https://josemiguelruizguevara.com:5000/api/desplazamientos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
       alert("Por favor, seleccione ambas fechas de filtro.");
       return;
     }
-    fetch(`http://localhost:5000/api/desplazamientos?start=${startDate}&end=${endDate}`)
+    fetch(`https://josemiguelruizguevara.com:5000/api/desplazamientos?start=${startDate}&end=${endDate}`)
       .then(response => response.json())
       .then(data => {
         const resultsContainer = document.getElementById('desp-results');
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('desplazamientos-export-btn').addEventListener('click', function() {
     const startDate = document.getElementById('desp-filter-start').value;
     const endDate = document.getElementById('desp-filter-end').value;
-    let url = 'http://localhost:5000/api/desplazamientos/export';
+    let url = 'https://josemiguelruizguevara.com:5000/api/desplazamientos/export';
     if (startDate && endDate) {
       url += `?start=${startDate}&end=${endDate}`;
     }
@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
         alert("Por favor, selecciona un archivo para autorrellenar.");
         return;
       }
-      fetch('http://localhost:5000/api/tickets/autofill', {
+      fetch('https://josemiguelruizguevara.com:5000/api/tickets/autofill', {
         method: 'POST',
         body: formData
       })
@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function() {
     formData.append('motivo', document.getElementById('ticket-motivo').value);
     formData.append('fecha', document.getElementById('ticket-fecha').value);
 
-    fetch('http://localhost:5000/api/tickets', {
+    fetch('https://josemiguelruizguevara.com:5000/api/tickets', {
       method: 'POST',
       body: formData
     })
@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
       alert("Por favor, seleccione ambas fechas de filtro.");
       return;
     }
-    fetch(`http://localhost:5000/api/tickets?start=${startDate}&end=${endDate}`)
+    fetch(`https://josemiguelruizguevara.com:5000/api/tickets?start=${startDate}&end=${endDate}`)
       .then(response => response.json())
       .then(data => {
         let totalDinero = 0;
@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('ticket-export-btn').addEventListener('click', function() {
     const startDate = document.getElementById('ticket-filter-start').value;
     const endDate = document.getElementById('ticket-filter-end').value;
-    let url = 'http://localhost:5000/api/tickets/export';
+    let url = 'https://josemiguelruizguevara.com:5000/api/tickets/export';
     if (startDate && endDate) {
       url += `?start=${startDate}&end=${endDate}`;
     }
@@ -300,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
         alert("Por favor, selecciona un archivo para autorrellenar.");
         return;
       }
-      fetch('http://localhost:5000/api/facturas/autofill', {
+      fetch('https://josemiguelruizguevara.com:5000/api/facturas/autofill', {
         method: 'POST',
         body: formData
       })
@@ -347,7 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
       formData.append('archivo', archivoInput.files[0]);
     }
 
-    fetch('http://localhost:5000/api/facturas', {
+    fetch('https://josemiguelruizguevara.com:5000/api/facturas', {
       method: 'POST',
       body: formData
     })
@@ -376,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function() {
       alert("Por favor, seleccione ambas fechas de filtro.");
       return;
     }
-    fetch(`http://localhost:5000/api/facturas?start=${startDate}&end=${endDate}`)
+    fetch(`https://josemiguelruizguevara.com:5000/api/facturas?start=${startDate}&end=${endDate}`)
       .then(response => response.json())
       .then(data => {
         let totalBruto = 0;
@@ -418,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('factura-export-btn').addEventListener('click', function() {
     const startDate = document.getElementById('factura-filter-start').value;
     const endDate = document.getElementById('factura-filter-end').value;
-    let url = 'http://localhost:5000/api/facturas/export';
+    let url = 'https://josemiguelruizguevara.com:5000/api/facturas/export';
     if (startDate && endDate) {
       url += `?start=${startDate}&end=${endDate}`;
     }
