@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if(tipo === "Electricidad") {
       defaultPercentage = 33;
     } else if(tipo === "Internet") {
-      defaultPercentage = 70;
+      defaultPercentage = 26,16;
     } else if(tipo === "Seguro coche") {
       defaultPercentage = 40;
     } else if(tipo === "Gasolina") {
