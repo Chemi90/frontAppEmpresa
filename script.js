@@ -422,4 +422,142 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     window.open(url, '_blank');
   });
+
+  // ----- Gastos Varios -----
+  const gastoTipoSelect = document.getElementById('gasto-tipo');
+  const gastoTotalInput = document.getElementById('gasto-total');
+  const gastoCheckbox = document.getElementById('gasto-compartido');
+  const gastoPorcentajeInput = document.getElementById('gasto-porcentaje');
+  const gastoDeducibleInput = document.getElementById('gasto-deducible');
+
+  function setDefaultPercentage() {
+    const tipo = gastoTipoSelect.value;
+    let defaultPercentage = 100;
+    if(tipo === "Terminal móvil") {
+      defaultPercentage = 50;
+    } else if(tipo === "ChatGPT Plus") {
+      defaultPercentage = 100;
+    } else if(tipo === "Electricidad") {
+      defaultPercentage = 33;
+    } else if(tipo === "Internet") {
+      defaultPercentage = 70;
+    } else if(tipo === "Seguro coche") {
+      defaultPercentage = 40;
+    } else if(tipo === "Gasolina") {
+      defaultPercentage = 40;
+    } else if(tipo === "IBI vivienda") {
+      defaultPercentage = 33;
+    } else if(tipo === "Comunidad de vecinos") {
+      defaultPercentage = 33;
+    }
+    gastoPorcentajeInput.value = defaultPercentage;
+  }
+
+  gastoTipoSelect.addEventListener('change', function() {
+    setDefaultPercentage();
+  });
+
+  gastoCheckbox.addEventListener('change', function() {
+    if(gastoCheckbox.checked) {
+      gastoPorcentajeInput.disabled = false;
+    } else {
+      gastoPorcentajeInput.disabled = true;
+      setDefaultPercentage();
+    }
+    updateGastoDeducible();
+  });
+
+  function updateGastoDeducible() {
+    const total = parseFloat(gastoTotalInput.value) || 0;
+    const porcentaje = parseFloat(gastoPorcentajeInput.value) || 0;
+    const deducible = total * (porcentaje / 100);
+    gastoDeducibleInput.value = deducible.toFixed(2);
+  }
+
+  gastoTotalInput.addEventListener('input', updateGastoDeducible);
+  gastoPorcentajeInput.addEventListener('input', updateGastoDeducible);
+
+  const gastosForm = document.getElementById('gastos-form');
+  gastosForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(gastosForm);
+    formData.set('gasto_compartido', gastoCheckbox.checked ? '1' : '0');
+    fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => { 
+          throw new Error(err.error || 'Error al agregar gasto'); 
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert("Gasto agregado exitosamente. ID: " + data.id);
+      gastosForm.reset();
+      setDefaultPercentage();
+      gastoDeducibleInput.value = "";
+    })
+    .catch(error => {
+      alert("Error: " + error.message);
+    });
+  });
+
+  const gastosFilterBtn = document.getElementById('gastos-filter-btn');
+  gastosFilterBtn.addEventListener('click', function() {
+    const startDate = document.getElementById('gastos-filter-start').value;
+    const endDate = document.getElementById('gastos-filter-end').value;
+    if (!startDate || !endDate) {
+      alert("Por favor, seleccione ambas fechas de filtro.");
+      return;
+    }
+    fetch(`https://josemiguelruizguevara.com:5000/api/gastos?start=${startDate}&end=${endDate}`)
+      .then(response => response.json())
+      .then(data => {
+        let totalGastos = 0;
+        let html = "";
+        if (data.length === 0) {
+          html = "<p>No se encontraron gastos en esas fechas.</p>";
+          document.getElementById('gastos-total').textContent = "0.00";
+        } else {
+          html += "<table border='1' style='width:100%;'><thead><tr>";
+          const cols = ["ID", "Fecha", "Tipo", "Importe Total (€)", "% Deducible", "Importe Deducible (€)", "Nota", "Gasto Compartido"];
+          cols.forEach(col => {
+            html += `<th>${col}</th>`;
+          });
+          html += "</tr></thead><tbody>";
+          data.forEach(item => {
+            html += "<tr>";
+            html += `<td>${item.id}</td>`;
+            html += `<td>${item.fecha}</td>`;
+            html += `<td>${item.tipo}</td>`;
+            html += `<td>${item.importe_total}</td>`;
+            html += `<td>${item.porcentaje_deducible}</td>`;
+            html += `<td>${item.importe_deducible}</td>`;
+            html += `<td>${item.nota || ''}</td>`;
+            html += `<td>${item.gasto_compartido == 1 ? 'Sí' : 'No'}</td>`;
+            html += "</tr>";
+            totalGastos += parseFloat(item.importe_total) || 0;
+          });
+          html += "</tbody></table>";
+          document.getElementById('gastos-total').textContent = totalGastos.toFixed(2);
+        }
+        document.getElementById('gastos-results').innerHTML = html;
+      })
+      .catch(error => {
+        alert("Error al filtrar gastos: " + error.message);
+      });
+  });
+
+  document.getElementById('gastos-export-btn').addEventListener('click', function() {
+    const startDate = document.getElementById('gastos-filter-start').value;
+    const endDate = document.getElementById('gastos-filter-end').value;
+    let url = 'https://josemiguelruizguevara.com:5000/api/gastos/export';
+    if (startDate && endDate) {
+      url += `?start=${startDate}&end=${endDate}`;
+    }
+    window.open(url, '_blank');
+  });
 });
