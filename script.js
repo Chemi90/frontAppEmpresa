@@ -50,6 +50,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const despKmInput = document.getElementById('desp-km');
   const despDeduccionInput = document.getElementById('desp-deduccion');
   const despGastoInput = document.getElementById('desp-gasto');
+  const despCurrentId = document.getElementById('desp-current-id');
+  const despSubmitBtn = document.getElementById('desp-submit-btn');
+  const despCancelBtn = document.getElementById('desp-cancel-btn');
 
   function updateTotalCost() {
     const km = parseFloat(despKmInput.value) || 0;
@@ -73,27 +76,58 @@ document.addEventListener('DOMContentLoaded', function() {
       gasto: document.getElementById('desp-gasto').value
     };
 
-    fetch('https://josemiguelruizguevara.com:5000/api/desplazamientos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(err => { 
-          throw new Error(err.error || 'Error al agregar desplazamiento'); 
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      alert("Desplazamiento agregado exitosamente. ID: " + data.id);
-      despForm.reset();
-      despGastoInput.value = "";
-    })
-    .catch(error => {
-      alert("Error: " + error.message);
-    });
+    // Si hay un ID en el campo oculto, se actualiza en lugar de agregar
+    if (despCurrentId.value) {
+      fetch(`https://josemiguelruizguevara.com:5000/api/desplazamientos/${despCurrentId.value}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Error al actualizar desplazamiento');
+        return response.json();
+      })
+      .then(data => {
+        alert("Desplazamiento actualizado exitosamente.");
+        despForm.reset();
+        despCurrentId.value = "";
+        despSubmitBtn.textContent = "Agregar Desplazamiento";
+        despCancelBtn.style.display = "none";
+        // Opcional: refrescar la lista filtrada si está visible
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+      });
+    } else {
+      fetch('https://josemiguelruizguevara.com:5000/api/desplazamientos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => { 
+            throw new Error(err.error || 'Error al agregar desplazamiento'); 
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert("Desplazamiento agregado exitosamente. ID: " + data.id);
+        despForm.reset();
+        despGastoInput.value = "";
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+      });
+    }
+  });
+
+  despCancelBtn.addEventListener('click', function() {
+    despForm.reset();
+    despCurrentId.value = "";
+    despSubmitBtn.textContent = "Agregar Desplazamiento";
+    despCancelBtn.style.display = "none";
   });
 
   const despFilterBtn = document.getElementById('desp-filter-btn');
@@ -119,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
           table.setAttribute('border', '1');
           const header = table.createTHead();
           const headerRow = header.insertRow();
-          const columns = ["ID", "Fecha", "Origen", "Destino", "Km", "Descripción", "Día", "Cliente", "Deducción", "Gasto"];
+          const columns = ["ID", "Fecha", "Origen", "Destino", "Km", "Descripción", "Día", "Cliente", "Deducción", "Gasto", "Acciones"];
           columns.forEach(col => {
             const th = document.createElement('th');
             th.textContent = col;
@@ -139,6 +173,20 @@ document.addEventListener('DOMContentLoaded', function() {
             row.insertCell().textContent = item.deduccion;
             row.insertCell().textContent = item.gasto;
             total += parseFloat(item.gasto) || 0;
+            // Celda de acciones: botón editar y eliminar
+            const actionsCell = row.insertCell();
+            actionsCell.innerHTML = `<button class="edit-desp" 
+              data-id="${item.id}"
+              data-fecha="${item.fecha}"
+              data-destino="${item.destino}"
+              data-distancia="${item.distancia}"
+              data-descripcion="${item.descripcion}"
+              data-dia="${item.dia}"
+              data-cliente="${item.cliente}"
+              data-deduccion="${item.deduccion}"
+              data-gasto="${item.gasto}"
+              >✏️</button>
+              <button class="delete-desp" data-id="${item.id}">🗑️</button>`;
           });
           table.appendChild(tbody);
           resultsContainer.appendChild(table);
@@ -429,6 +477,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const gastoCheckbox = document.getElementById('gasto-compartido');
   const gastoPorcentajeInput = document.getElementById('gasto-porcentaje');
   const gastoDeducibleInput = document.getElementById('gasto-deducible');
+  const gastoCurrentId = document.getElementById('gasto-current-id');
+  const gastoSubmitBtn = document.getElementById('gasto-submit-btn');
+  const gastoCancelBtn = document.getElementById('gasto-cancel-btn');
 
   function setDefaultPercentage() {
     const tipo = gastoTipoSelect.value;
@@ -440,7 +491,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if(tipo === "Electricidad") {
       defaultPercentage = 33;
     } else if(tipo === "Internet") {
-      defaultPercentage = 26,16;
+      defaultPercentage = 26.16;
     } else if(tipo === "Seguro coche") {
       defaultPercentage = 40;
     } else if(tipo === "Gasolina") {
@@ -482,27 +533,66 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
     const formData = new FormData(gastosForm);
     formData.set('gasto_compartido', gastoCheckbox.checked ? '1' : '0');
-    fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(err => { 
-          throw new Error(err.error || 'Error al agregar gasto'); 
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      alert("Gasto agregado exitosamente. ID: " + data.id);
-      gastosForm.reset();
-      setDefaultPercentage();
-      gastoDeducibleInput.value = "";
-    })
-    .catch(error => {
-      alert("Error: " + error.message);
-    });
+
+    // Si hay ID en el campo oculto se actualiza
+    if(gastoCurrentId.value) {
+      // Convertir FormData a objeto para enviar en JSON
+      const obj = {};
+      formData.forEach((value, key) => {
+        obj[key] = value;
+      });
+      fetch(`https://josemiguelruizguevara.com:5000/api/gastos/${gastoCurrentId.value}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(obj)
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Error al actualizar gasto');
+        return response.json();
+      })
+      .then(data => {
+        alert("Gasto actualizado exitosamente.");
+        gastosForm.reset();
+        setDefaultPercentage();
+        gastoDeducibleInput.value = "";
+        gastoCurrentId.value = "";
+        gastoSubmitBtn.textContent = "Agregar Gasto";
+        gastoCancelBtn.style.display = "none";
+        // Opcional: refrescar la lista filtrada
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+      });
+    } else {
+      fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => { 
+            throw new Error(err.error || 'Error al agregar gasto'); 
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert("Gasto agregado exitosamente. ID: " + data.id);
+        gastosForm.reset();
+        setDefaultPercentage();
+        gastoDeducibleInput.value = "";
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+      });
+    }
+  });
+
+  gastoCancelBtn.addEventListener('click', function() {
+    gastosForm.reset();
+    gastoCurrentId.value = "";
+    gastoSubmitBtn.textContent = "Agregar Gasto";
+    gastoCancelBtn.style.display = "none";
   });
 
   const gastosFilterBtn = document.getElementById('gastos-filter-btn');
@@ -523,7 +613,7 @@ document.addEventListener('DOMContentLoaded', function() {
           document.getElementById('gastos-total').textContent = "0.00";
         } else {
           html += "<table border='1' style='width:100%;'><thead><tr>";
-          const cols = ["ID", "Fecha", "Tipo", "Importe Total (€)", "% Deducible", "Importe Deducible (€)", "Nota", "Gasto Compartido"];
+          const cols = ["ID", "Fecha", "Tipo", "Importe Total (€)", "% Deducible", "Importe Deducible (€)", "Nota", "Gasto Compartido", "Acciones"];
           cols.forEach(col => {
             html += `<th>${col}</th>`;
           });
@@ -538,6 +628,20 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `<td>${item.importe_deducible}</td>`;
             html += `<td>${item.nota || ''}</td>`;
             html += `<td>${item.gasto_compartido == 1 ? 'Sí' : 'No'}</td>`;
+            // Botones para editar y eliminar en gastos
+            html += `<td>
+              <button class="edit-gasto" 
+                data-id="${item.id}"
+                data-fecha="${item.fecha}"
+                data-tipo="${item.tipo}"
+                data-importe_total="${item.importe_total}"
+                data-porcentaje_deducible="${item.porcentaje_deducible}"
+                data-importe_deducible="${item.importe_deducible}"
+                data-nota="${item.nota}"
+                data-gasto_compartido="${item.gasto_compartido}"
+                >✏️</button>
+              <button class="delete-gasto" data-id="${item.id}">🗑️</button>
+              </td>`;
             html += "</tr>";
             totalGastos += parseFloat(item.importe_total) || 0;
           });
@@ -559,5 +663,80 @@ document.addEventListener('DOMContentLoaded', function() {
       url += `?start=${startDate}&end=${endDate}`;
     }
     window.open(url, '_blank');
+  });
+
+  // ----- Delegación de eventos para botones de editar y eliminar -----
+  document.addEventListener('click', function(e) {
+    // Para desplazamientos
+    if(e.target.classList.contains('delete-desp')) {
+      const id = e.target.getAttribute('data-id');
+      if(confirm("¿Está seguro de eliminar este desplazamiento?")) {
+        fetch(`https://josemiguelruizguevara.com:5000/api/desplazamientos/${id}`, {
+          method: 'DELETE'
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Error al eliminar desplazamiento');
+          return response.json();
+        })
+        .then(data => {
+          alert("Desplazamiento eliminado.");
+          e.target.parentElement.parentElement.remove();
+        })
+        .catch(error => {
+          alert("Error: " + error.message);
+        });
+      }
+    }
+    if(e.target.classList.contains('edit-desp')) {
+      // Rellenar el formulario de desplazamientos con los datos de la fila
+      despCurrentId.value = e.target.getAttribute('data-id');
+      document.getElementById('desp-fecha').value = e.target.getAttribute('data-fecha');
+      document.getElementById('desp-destino').value = e.target.getAttribute('data-destino');
+      document.getElementById('desp-km').value = e.target.getAttribute('data-distancia');
+      document.getElementById('desp-descripcion').value = e.target.getAttribute('data-descripcion');
+      document.getElementById('desp-dia').value = e.target.getAttribute('data-dia');
+      document.getElementById('desp-cliente').value = e.target.getAttribute('data-cliente');
+      document.getElementById('desp-deduccion').value = e.target.getAttribute('data-deduccion');
+      document.getElementById('desp-gasto').value = e.target.getAttribute('data-gasto');
+      despSubmitBtn.textContent = "Actualizar Desplazamiento";
+      despCancelBtn.style.display = "inline-block";
+      window.scrollTo(0,0);
+    }
+
+    // Para gastos
+    if(e.target.classList.contains('delete-gasto')) {
+      const id = e.target.getAttribute('data-id');
+      if(confirm("¿Está seguro de eliminar este gasto?")) {
+        fetch(`https://josemiguelruizguevara.com:5000/api/gastos/${id}`, {
+          method: 'DELETE'
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Error al eliminar gasto');
+          return response.json();
+        })
+        .then(data => {
+          alert("Gasto eliminado.");
+          e.target.parentElement.parentElement.remove();
+        })
+        .catch(error => {
+          alert("Error: " + error.message);
+        });
+      }
+    }
+    if(e.target.classList.contains('edit-gasto')) {
+      // Rellenar el formulario de gastos con los datos de la fila
+      gastoCurrentId.value = e.target.getAttribute('data-id');
+      document.getElementById('gasto-fecha').value = e.target.getAttribute('data-fecha');
+      document.getElementById('gasto-tipo').value = e.target.getAttribute('data-tipo');
+      document.getElementById('gasto-total').value = e.target.getAttribute('data-importe_total');
+      document.getElementById('gasto-porcentaje').value = e.target.getAttribute('data-porcentaje_deducible');
+      document.getElementById('gasto-deducible').value = e.target.getAttribute('data-importe_deducible');
+      document.getElementById('gasto-nota').value = e.target.getAttribute('data-nota');
+      // Para el checkbox, interpretamos "1" o "true" como marcado
+      document.getElementById('gasto-compartido').checked = (e.target.getAttribute('data-gasto_compartido') == 1);
+      gastoSubmitBtn.textContent = "Actualizar Gasto";
+      gastoCancelBtn.style.display = "inline-block";
+      window.scrollTo(0,document.body.scrollHeight);
+    }
   });
 });

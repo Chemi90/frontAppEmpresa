@@ -29,6 +29,9 @@
     <section id="desplazamientos" class="tab-content">
       <h2>Desplazamientos</h2>
       <form id="desplazamientos-form">
+        <!-- Campo oculto para saber si se está editando -->
+        <input type="hidden" id="desp-current-id" name="id" value="">
+        
         <label for="desp-fecha">Fecha:</label>
         <input type="date" id="desp-fecha" name="fecha">
         
@@ -56,7 +59,8 @@
         <label for="desp-gasto">Gasto Total del Viaje (€):</label>
         <input type="number" step="0.01" id="desp-gasto" name="gasto" readonly>
     
-        <button type="submit">Agregar Desplazamiento</button>
+        <button type="submit" id="desp-submit-btn">Agregar Desplazamiento</button>
+        <button type="button" id="desp-cancel-btn" style="display:none;">Cancelar</button>
       </form>
     
       <div id="desp-filter">
@@ -164,6 +168,9 @@
     <section id="gastos" class="tab-content" style="display:none;">
       <h2>Gastos Varios</h2>
       <form id="gastos-form">
+         <!-- Campo oculto para saber si se está editando -->
+         <input type="hidden" id="gasto-current-id" name="id" value="">
+         
          <label for="gasto-fecha">Fecha:</label>
          <input type="date" id="gasto-fecha" name="fecha">
 
@@ -195,7 +202,8 @@
          <label for="gasto-nota">Justificación/Nota:</label>
          <textarea id="gasto-nota" name="nota"></textarea>
 
-         <button type="submit">Agregar Gasto</button>
+         <button type="submit" id="gasto-submit-btn">Agregar Gasto</button>
+         <button type="button" id="gasto-cancel-btn" style="display:none;">Cancelar</button>
       </form>
 
       <div id="gastos-filter">
