@@ -85,6 +85,9 @@
     <section id="tickets" class="tab-content" style="display:none;">
       <h2>Tickets de Comida</h2>
       <form id="tickets-form">
+         <!-- Campo oculto para saber si se está editando -->
+         <input type="hidden" id="ticket-current-id" name="id" value="">
+         
          <label for="ticket-foto">Foto de la Factura:</label>
          <input type="file" id="ticket-foto" name="foto" accept="image/*">
  
@@ -103,7 +106,7 @@
          <!-- Botón para autorrellenar campos con IA -->
          <button type="button" id="ticket-autofill-btn">Autorrellenar</button>
  
-         <button type="submit">Agregar Ticket</button>
+         <button type="submit" id="ticket-submit-btn">Agregar Ticket</button>
       </form>
       <div id="ticket-filter">
          <h3>Filtrar por Fecha</h3>
@@ -125,6 +128,9 @@
     <section id="facturas" class="tab-content" style="display:none;">
       <h2>Facturas</h2>
       <form id="facturas-form">
+         <!-- Campo oculto para saber si se está editando -->
+         <input type="hidden" id="factura-current-id" name="id" value="">
+         
          <label for="factura-fecha">Fecha:</label>
          <input type="date" id="factura-fecha" name="fecha">
 
@@ -146,7 +152,7 @@
          <!-- Botón para autorrellenar campos con IA -->
          <button type="button" id="factura-autofill-btn">Autorrellenar</button>
 
-         <button type="submit">Agregar Factura</button>
+         <button type="submit" id="factura-submit-btn">Agregar Factura</button>
       </form>
       <div id="factura-filter">
          <h3>Filtrar por Fecha</h3>
