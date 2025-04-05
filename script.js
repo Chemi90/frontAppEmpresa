@@ -313,7 +313,17 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `<td>${item.dinero}</td>`;
             html += `<td>${item.motivo}</td>`;
             html += `<td>${item.fecha}</td>`;
-            html += "</tr>";
+            html += `<td>
+                    <button class="edit-ticket" 
+                      data-id="${item.id}"
+                      data-localizacion="${item.localizacion}"
+                      data-dinero="${item.dinero}"
+                      data-motivo="${item.motivo}"
+                      data-fecha="${item.fecha}"
+                    >✏️</button>
+                    <button class="delete-ticket" data-id="${item.id}">🗑️</button>
+                   </td>`;
+          html += "</tr>";
             totalDinero += parseFloat(item.dinero) || 0;
           });
           html += "</tbody></table>";
@@ -446,7 +456,18 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `<td>${item.retencion}</td>`;
             html += `<td>${item.nombre_empresa}</td>`;
             html += `<td>${item.archivo}</td>`;
-            html += "</tr>";
+            html += `<td>
+                    <button class="edit-factura" 
+                      data-id="${item.id}"
+                      data-fecha="${item.fecha}"
+                      data-bruta="${item.cantidad_bruta}"
+                      data-neta="${item.cantidad_neta}"
+                      data-retencion="${item.retencion}"
+                      data-empresa="${item.nombre_empresa}"
+                    >✏️</button>
+                    <button class="delete-factura" data-id="${item.id}">🗑️</button>
+                   </td>`;
+          html += "</tr>";
             totalBruto += parseFloat(item.cantidad_bruta) || 0;
             totalNeto += parseFloat(item.cantidad_neta) || 0;
           });
@@ -737,6 +758,71 @@ document.addEventListener('DOMContentLoaded', function() {
       gastoSubmitBtn.textContent = "Actualizar Gasto";
       gastoCancelBtn.style.display = "inline-block";
       window.scrollTo(0,document.body.scrollHeight);
+    }
+    if(e.target.classList.contains('delete-ticket')) {
+      const id = e.target.getAttribute('data-id');
+      if(confirm("¿Está seguro de eliminar este ticket?")) {
+        fetch(`https://josemiguelruizguevara.com:5000/api/tickets/${id}`, {
+          method: 'DELETE'
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Error al eliminar ticket');
+          return response.json();
+        })
+        .then(data => {
+          alert("Ticket eliminado.");
+          e.target.parentElement.parentElement.remove();
+        })
+        .catch(error => {
+          alert("Error: " + error.message);
+        });
+      }
+    }
+    if(e.target.classList.contains('edit-ticket')) {
+      // Asumiendo que hayas agregado un campo oculto en el formulario de tickets (por ejemplo, con id "ticket-current-id")
+      // para identificar el ticket a editar.
+      // Rellenar el formulario con los datos del ticket seleccionado:
+      document.getElementById('ticket-localizacion').value = e.target.getAttribute('data-localizacion');
+      document.getElementById('ticket-dinero').value = parseFloat(e.target.getAttribute('data-dinero')).toFixed(2);
+      document.getElementById('ticket-motivo').value = e.target.getAttribute('data-motivo');
+      document.getElementById('ticket-fecha').value = e.target.getAttribute('data-fecha');
+      // Opcional: si agregas un input oculto para el id, puedes asignarlo:
+      // document.getElementById('ticket-current-id').value = e.target.getAttribute('data-id');
+      // También puedes cambiar el texto del botón de envío si deseas indicar "Actualizar Ticket"
+    }
+    
+    // Para Facturas
+    if(e.target.classList.contains('delete-factura')) {
+      const id = e.target.getAttribute('data-id');
+      if(confirm("¿Está seguro de eliminar esta factura?")) {
+        fetch(`https://josemiguelruizguevara.com:5000/api/facturas/${id}`, {
+          method: 'DELETE'
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Error al eliminar factura');
+          return response.json();
+        })
+        .then(data => {
+          alert("Factura eliminada.");
+          e.target.parentElement.parentElement.remove();
+        })
+        .catch(error => {
+          alert("Error: " + error.message);
+        });
+      }
+    }
+    if(e.target.classList.contains('edit-factura')) {
+      // Asumiendo que agregues un campo oculto en el formulario de facturas (por ejemplo, con id "factura-current-id")
+      // para identificar la factura a editar.
+      // Rellenar el formulario con los datos de la factura seleccionada:
+      document.getElementById('factura-fecha').value = e.target.getAttribute('data-fecha');
+      document.getElementById('factura-bruta').value = parseFloat(e.target.getAttribute('data-bruta')).toFixed(2);
+      document.getElementById('factura-neta').value = parseFloat(e.target.getAttribute('data-neta')).toFixed(2);
+      document.getElementById('factura-retencion').value = parseFloat(e.target.getAttribute('data-retencion')).toFixed(2);
+      document.getElementById('factura-empresa').value = e.target.getAttribute('data-empresa');
+      // Opcional: asignar el id a un campo oculto
+      // document.getElementById('factura-current-id').value = e.target.getAttribute('data-id');
+      // También puedes actualizar el texto del botón de envío para indicar "Actualizar Factura"
     }
   });
 });
