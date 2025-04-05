@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
       gasto: document.getElementById('desp-gasto').value
     };
 
-    // Si hay un ID en el campo oculto, se actualiza en lugar de agregar
+    // Si hay un ID se actualiza; de lo contrario se agrega
     if (despCurrentId.value) {
       fetch(`https://josemiguelruizguevara.com:5000/api/desplazamientos/${despCurrentId.value}`, {
         method: 'PUT',
@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
             row.insertCell().textContent = item.deduccion;
             row.insertCell().textContent = item.gasto;
             total += parseFloat(item.gasto) || 0;
-            // Celda de acciones: botón editar y eliminar
+            // Botones de editar y eliminar
             const actionsCell = row.insertCell();
             actionsCell.innerHTML = `<button class="edit-desp" 
               data-id="${item.id}"
@@ -210,8 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // ----- Tickets de Comida -----
   const ticketsForm = document.getElementById('tickets-form');
   const ticketAutofillBtn = document.getElementById('ticket-autofill-btn');
-  // Se asume que en el formulario se agregó el input oculto con id "ticket-current-id"
-  // y el botón de envío con id "ticket-submit-btn"
+  const ticketCancelBtn = document.getElementById('ticket-cancel-btn'); // Botón cancelar para Tickets
   if(ticketAutofillBtn) {
     ticketAutofillBtn.addEventListener('click', function() {
       const formData = new FormData();
@@ -255,7 +254,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const ticketCurrentId = document.getElementById('ticket-current-id').value;
     // Si existe el ID, se actualiza; de lo contrario se agrega
     if (ticketCurrentId) {
-      // Actualización: solo se actualizarán los campos de texto
       const data = {
         localizacion: document.getElementById('ticket-localizacion').value,
         dinero: document.getElementById('ticket-dinero').value,
@@ -276,12 +274,12 @@ document.addEventListener('DOMContentLoaded', function() {
         ticketsForm.reset();
         document.getElementById('ticket-submit-btn').textContent = "Agregar Ticket";
         document.getElementById('ticket-current-id').value = "";
+        ticketCancelBtn.style.display = "none";
       })
       .catch(error => {
         alert("Error: " + error.message);
       });
     } else {
-      // Agregar ticket nuevo
       const formData = new FormData();
       const fotoInput = document.getElementById('ticket-foto');
       if (fotoInput.files.length > 0) {
@@ -312,6 +310,13 @@ document.addEventListener('DOMContentLoaded', function() {
         alert("Error: " + error.message);
       });
     }
+  });
+
+  ticketCancelBtn.addEventListener('click', function() {
+    ticketsForm.reset();
+    document.getElementById('ticket-current-id').value = "";
+    document.getElementById('ticket-submit-btn').textContent = "Agregar Ticket";
+    ticketCancelBtn.style.display = "none";
   });
 
   const ticketFilterBtn = document.getElementById('ticket-filter-btn');
@@ -380,8 +385,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // ----- Facturas -----
   const facturaAutofillBtn = document.getElementById('factura-autofill-btn');
-  // Se asume que en el formulario de facturas se agregó el input oculto con id "factura-current-id"
-  // y el botón de envío con id "factura-submit-btn"
+  const facturaCancelBtn = document.getElementById('factura-cancel-btn'); // Botón cancelar para Facturas
   if(facturaAutofillBtn) {
     facturaAutofillBtn.addEventListener('click', function() {
       const formData = new FormData();
@@ -428,7 +432,6 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
     const facturaCurrentId = document.getElementById('factura-current-id').value;
     if (facturaCurrentId) {
-      // Actualizar factura (modo edición) - se actualizan los campos de texto (archivo no se actualiza en este ejemplo)
       const data = {
         fecha: document.getElementById('factura-fecha').value,
         bruta: document.getElementById('factura-bruta').value,
@@ -450,12 +453,12 @@ document.addEventListener('DOMContentLoaded', function() {
         facturasForm.reset();
         document.getElementById('factura-submit-btn').textContent = "Agregar Factura";
         document.getElementById('factura-current-id').value = "";
+        facturaCancelBtn.style.display = "none";
       })
       .catch(error => {
         alert("Error: " + error.message);
       });
     } else {
-      // Agregar factura nueva
       const formData = new FormData();
       formData.append('fecha', document.getElementById('factura-fecha').value);
       formData.append('bruta', document.getElementById('factura-bruta').value);
@@ -487,6 +490,13 @@ document.addEventListener('DOMContentLoaded', function() {
         alert("Error: " + error.message);
       });
     }
+  });
+
+  facturaCancelBtn.addEventListener('click', function() {
+    facturasForm.reset();
+    document.getElementById('factura-current-id').value = "";
+    document.getElementById('factura-submit-btn').textContent = "Agregar Factura";
+    facturaCancelBtn.style.display = "none";
   });
 
   const facturaFilterBtn = document.getElementById('factura-filter-btn');
@@ -620,9 +630,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const formData = new FormData(gastosForm);
     formData.set('gasto_compartido', gastoCheckbox.checked ? '1' : '0');
 
-    // Si hay ID en el campo oculto se actualiza
     if(gastoCurrentId.value) {
-      // Convertir FormData a objeto para enviar en JSON
       const obj = {};
       formData.forEach((value, key) => {
         obj[key] = value;
@@ -772,7 +780,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     if(e.target.classList.contains('edit-desp')) {
-      // Rellenar el formulario de desplazamientos con los datos de la fila
       despCurrentId.value = e.target.getAttribute('data-id');
       document.getElementById('desp-fecha').value = e.target.getAttribute('data-fecha');
       document.getElementById('desp-destino').value = e.target.getAttribute('data-destino');
@@ -808,7 +815,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     if(e.target.classList.contains('edit-gasto')) {
-      // Rellenar el formulario de gastos con los datos de la fila
       gastoCurrentId.value = e.target.getAttribute('data-id');
       document.getElementById('gasto-fecha').value = e.target.getAttribute('data-fecha');
       document.getElementById('gasto-tipo').value = e.target.getAttribute('data-tipo');
@@ -842,15 +848,13 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     if(e.target.classList.contains('edit-ticket')) {
-      // Rellenar el formulario de Tickets con los datos del ticket seleccionado
       document.getElementById('ticket-localizacion').value = e.target.getAttribute('data-localizacion');
       document.getElementById('ticket-dinero').value = parseFloat(e.target.getAttribute('data-dinero')).toFixed(2);
       document.getElementById('ticket-motivo').value = e.target.getAttribute('data-motivo');
       document.getElementById('ticket-fecha').value = e.target.getAttribute('data-fecha');
-      // Asignar el ID del ticket al campo oculto
       document.getElementById('ticket-current-id').value = e.target.getAttribute('data-id');
-      // Cambiar el texto del botón de envío para indicar "Actualizar Ticket"
       document.getElementById('ticket-submit-btn').textContent = "Actualizar Ticket";
+      ticketCancelBtn.style.display = "inline-block";
     }
     // Para Facturas
     if(e.target.classList.contains('delete-factura')) {
@@ -873,16 +877,14 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     if(e.target.classList.contains('edit-factura')) {
-      // Rellenar el formulario de Facturas con los datos de la factura seleccionada
       document.getElementById('factura-fecha').value = e.target.getAttribute('data-fecha');
       document.getElementById('factura-bruta').value = parseFloat(e.target.getAttribute('data-bruta')).toFixed(2);
       document.getElementById('factura-neta').value = parseFloat(e.target.getAttribute('data-neta')).toFixed(2);
       document.getElementById('factura-retencion').value = parseFloat(e.target.getAttribute('data-retencion')).toFixed(2);
       document.getElementById('factura-empresa').value = e.target.getAttribute('data-empresa');
-      // Asignar el ID de la factura al campo oculto
       document.getElementById('factura-current-id').value = e.target.getAttribute('data-id');
-      // Cambiar el texto del botón de envío para indicar "Actualizar Factura"
       document.getElementById('factura-submit-btn').textContent = "Actualizar Factura";
+      facturaCancelBtn.style.display = "inline-block";
     }
   });
 });
