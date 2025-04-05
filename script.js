@@ -93,7 +93,6 @@ document.addEventListener('DOMContentLoaded', function() {
         despCurrentId.value = "";
         despSubmitBtn.textContent = "Agregar Desplazamiento";
         despCancelBtn.style.display = "none";
-        // Opcional: refrescar la lista filtrada si está visible
       })
       .catch(error => {
         alert("Error: " + error.message);
@@ -211,6 +210,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // ----- Tickets de Comida -----
   const ticketsForm = document.getElementById('tickets-form');
   const ticketAutofillBtn = document.getElementById('ticket-autofill-btn');
+  // Se asume que en el formulario se agregó el input oculto con id "ticket-current-id"
+  // y el botón de envío con id "ticket-submit-btn"
   if(ticketAutofillBtn) {
     ticketAutofillBtn.addEventListener('click', function() {
       const formData = new FormData();
@@ -251,35 +252,66 @@ document.addEventListener('DOMContentLoaded', function() {
 
   ticketsForm.addEventListener('submit', function(e) {
     e.preventDefault();
-    const formData = new FormData();
-    const fotoInput = document.getElementById('ticket-foto');
-    if (fotoInput.files.length > 0) {
-      formData.append('foto', fotoInput.files[0]);
-    }
-    formData.append('localizacion', document.getElementById('ticket-localizacion').value);
-    formData.append('dinero', document.getElementById('ticket-dinero').value);
-    formData.append('motivo', document.getElementById('ticket-motivo').value);
-    formData.append('fecha', document.getElementById('ticket-fecha').value);
-
-    fetch('https://josemiguelruizguevara.com:5000/api/tickets', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(err => { 
-          throw new Error(err.error || "Error al agregar ticket"); 
-        });
+    const ticketCurrentId = document.getElementById('ticket-current-id').value;
+    // Si existe el ID, se actualiza; de lo contrario se agrega
+    if (ticketCurrentId) {
+      // Actualización: solo se actualizarán los campos de texto
+      const data = {
+        localizacion: document.getElementById('ticket-localizacion').value,
+        dinero: document.getElementById('ticket-dinero').value,
+        motivo: document.getElementById('ticket-motivo').value,
+        fecha: document.getElementById('ticket-fecha').value
+      };
+      fetch(`https://josemiguelruizguevara.com:5000/api/tickets/${ticketCurrentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Error al actualizar ticket');
+        return response.json();
+      })
+      .then(data => {
+        alert("Ticket actualizado exitosamente.");
+        ticketsForm.reset();
+        document.getElementById('ticket-submit-btn').textContent = "Agregar Ticket";
+        document.getElementById('ticket-current-id').value = "";
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+      });
+    } else {
+      // Agregar ticket nuevo
+      const formData = new FormData();
+      const fotoInput = document.getElementById('ticket-foto');
+      if (fotoInput.files.length > 0) {
+        formData.append('foto', fotoInput.files[0]);
       }
-      return response.json();
-    })
-    .then(data => {
-      alert("Ticket agregado exitosamente. ID: " + data.id);
-      ticketsForm.reset();
-    })
-    .catch(error => {
-      alert("Error: " + error.message);
-    });
+      formData.append('localizacion', document.getElementById('ticket-localizacion').value);
+      formData.append('dinero', document.getElementById('ticket-dinero').value);
+      formData.append('motivo', document.getElementById('ticket-motivo').value);
+      formData.append('fecha', document.getElementById('ticket-fecha').value);
+
+      fetch('https://josemiguelruizguevara.com:5000/api/tickets', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => { 
+            throw new Error(err.error || "Error al agregar ticket"); 
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert("Ticket agregado exitosamente. ID: " + data.id);
+        ticketsForm.reset();
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+      });
+    }
   });
 
   const ticketFilterBtn = document.getElementById('ticket-filter-btn');
@@ -300,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
           document.getElementById('ticket-total').textContent = "0.00";
         } else {
           html += "<table border='1' style='width:100%;'><thead><tr>";
-          const cols = ["ID", "Foto", "Localización", "Dinero", "Motivo", "Fecha"];
+          const cols = ["ID", "Foto", "Localización", "Dinero", "Motivo", "Fecha", "Acciones"];
           cols.forEach(col => {
             html += `<th>${col}</th>`;
           });
@@ -323,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     >✏️</button>
                     <button class="delete-ticket" data-id="${item.id}">🗑️</button>
                    </td>`;
-          html += "</tr>";
+            html += "</tr>";
             totalDinero += parseFloat(item.dinero) || 0;
           });
           html += "</tbody></table>";
@@ -348,6 +380,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // ----- Facturas -----
   const facturaAutofillBtn = document.getElementById('factura-autofill-btn');
+  // Se asume que en el formulario de facturas se agregó el input oculto con id "factura-current-id"
+  // y el botón de envío con id "factura-submit-btn"
   if(facturaAutofillBtn) {
     facturaAutofillBtn.addEventListener('click', function() {
       const formData = new FormData();
@@ -392,36 +426,67 @@ document.addEventListener('DOMContentLoaded', function() {
   const facturasForm = document.getElementById('facturas-form');
   facturasForm.addEventListener('submit', function(e) {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append('fecha', document.getElementById('factura-fecha').value);
-    formData.append('bruta', document.getElementById('factura-bruta').value);
-    formData.append('neta', document.getElementById('factura-neta').value);
-    formData.append('retencion', document.getElementById('factura-retencion').value);
-    formData.append('empresa', document.getElementById('factura-empresa').value);
-    const archivoInput = document.getElementById('factura-archivo');
-    if (archivoInput.files.length > 0) {
-      formData.append('archivo', archivoInput.files[0]);
-    }
-
-    fetch('https://josemiguelruizguevara.com:5000/api/facturas', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(err => {
-          throw new Error(err.error || "Error al agregar factura");
-        });
+    const facturaCurrentId = document.getElementById('factura-current-id').value;
+    if (facturaCurrentId) {
+      // Actualizar factura (modo edición) - se actualizan los campos de texto (archivo no se actualiza en este ejemplo)
+      const data = {
+        fecha: document.getElementById('factura-fecha').value,
+        bruta: document.getElementById('factura-bruta').value,
+        neta: document.getElementById('factura-neta').value,
+        retencion: document.getElementById('factura-retencion').value,
+        empresa: document.getElementById('factura-empresa').value
+      };
+      fetch(`https://josemiguelruizguevara.com:5000/api/facturas/${facturaCurrentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Error al actualizar factura');
+        return response.json();
+      })
+      .then(data => {
+        alert("Factura actualizada exitosamente.");
+        facturasForm.reset();
+        document.getElementById('factura-submit-btn').textContent = "Agregar Factura";
+        document.getElementById('factura-current-id').value = "";
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+      });
+    } else {
+      // Agregar factura nueva
+      const formData = new FormData();
+      formData.append('fecha', document.getElementById('factura-fecha').value);
+      formData.append('bruta', document.getElementById('factura-bruta').value);
+      formData.append('neta', document.getElementById('factura-neta').value);
+      formData.append('retencion', document.getElementById('factura-retencion').value);
+      formData.append('empresa', document.getElementById('factura-empresa').value);
+      const archivoInput = document.getElementById('factura-archivo');
+      if (archivoInput.files.length > 0) {
+        formData.append('archivo', archivoInput.files[0]);
       }
-      return response.json();
-    })
-    .then(data => {
-      alert("Factura agregada exitosamente. ID: " + data.id);
-      facturasForm.reset();
-    })
-    .catch(error => {
-      alert("Error: " + error.message);
-    });
+
+      fetch('https://josemiguelruizguevara.com:5000/api/facturas', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            throw new Error(err.error || "Error al agregar factura");
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert("Factura agregada exitosamente. ID: " + data.id);
+        facturasForm.reset();
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+      });
+    }
   });
 
   const facturaFilterBtn = document.getElementById('factura-filter-btn');
@@ -442,7 +507,7 @@ document.addEventListener('DOMContentLoaded', function() {
           html = "<p>No se encontraron facturas en esas fechas.</p>";
         } else {
           html += "<table border='1' style='width:100%;'><thead><tr>";
-          const cols = ["ID", "Fecha", "Bruta (€)", "Neta (€)", "Retención (%)", "Empresa", "Archivo"];
+          const cols = ["ID", "Fecha", "Bruta (€)", "Neta (€)", "Retención (%)", "Empresa", "Archivo", "Acciones"];
           cols.forEach(col => {
             html += `<th>${col}</th>`;
           });
@@ -467,7 +532,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     >✏️</button>
                     <button class="delete-factura" data-id="${item.id}">🗑️</button>
                    </td>`;
-          html += "</tr>";
+            html += "</tr>";
             totalBruto += parseFloat(item.cantidad_bruta) || 0;
             totalNeto += parseFloat(item.cantidad_neta) || 0;
           });
@@ -579,7 +644,6 @@ document.addEventListener('DOMContentLoaded', function() {
         gastoCurrentId.value = "";
         gastoSubmitBtn.textContent = "Agregar Gasto";
         gastoCancelBtn.style.display = "none";
-        // Opcional: refrescar la lista filtrada
       })
       .catch(error => {
         alert("Error: " + error.message);
@@ -649,7 +713,6 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `<td>${item.importe_deducible}</td>`;
             html += `<td>${item.nota || ''}</td>`;
             html += `<td>${item.gasto_compartido == 1 ? 'Sí' : 'No'}</td>`;
-            // Botones para editar y eliminar en gastos
             html += `<td>
               <button class="edit-gasto" 
                 data-id="${item.id}"
@@ -753,12 +816,12 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('gasto-porcentaje').value = e.target.getAttribute('data-porcentaje_deducible');
       document.getElementById('gasto-deducible').value = e.target.getAttribute('data-importe_deducible');
       document.getElementById('gasto-nota').value = e.target.getAttribute('data-nota');
-      // Para el checkbox, interpretamos "1" o "true" como marcado
       document.getElementById('gasto-compartido').checked = (e.target.getAttribute('data-gasto_compartido') == 1);
       gastoSubmitBtn.textContent = "Actualizar Gasto";
       gastoCancelBtn.style.display = "inline-block";
       window.scrollTo(0,document.body.scrollHeight);
     }
+    // Para Tickets
     if(e.target.classList.contains('delete-ticket')) {
       const id = e.target.getAttribute('data-id');
       if(confirm("¿Está seguro de eliminar este ticket?")) {
@@ -779,18 +842,16 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     if(e.target.classList.contains('edit-ticket')) {
-      // Asumiendo que hayas agregado un campo oculto en el formulario de tickets (por ejemplo, con id "ticket-current-id")
-      // para identificar el ticket a editar.
-      // Rellenar el formulario con los datos del ticket seleccionado:
+      // Rellenar el formulario de Tickets con los datos del ticket seleccionado
       document.getElementById('ticket-localizacion').value = e.target.getAttribute('data-localizacion');
       document.getElementById('ticket-dinero').value = parseFloat(e.target.getAttribute('data-dinero')).toFixed(2);
       document.getElementById('ticket-motivo').value = e.target.getAttribute('data-motivo');
       document.getElementById('ticket-fecha').value = e.target.getAttribute('data-fecha');
-      // Opcional: si agregas un input oculto para el id, puedes asignarlo:
-      // document.getElementById('ticket-current-id').value = e.target.getAttribute('data-id');
-      // También puedes cambiar el texto del botón de envío si deseas indicar "Actualizar Ticket"
+      // Asignar el ID del ticket al campo oculto
+      document.getElementById('ticket-current-id').value = e.target.getAttribute('data-id');
+      // Cambiar el texto del botón de envío para indicar "Actualizar Ticket"
+      document.getElementById('ticket-submit-btn').textContent = "Actualizar Ticket";
     }
-    
     // Para Facturas
     if(e.target.classList.contains('delete-factura')) {
       const id = e.target.getAttribute('data-id');
@@ -812,17 +873,16 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
     if(e.target.classList.contains('edit-factura')) {
-      // Asumiendo que agregues un campo oculto en el formulario de facturas (por ejemplo, con id "factura-current-id")
-      // para identificar la factura a editar.
-      // Rellenar el formulario con los datos de la factura seleccionada:
+      // Rellenar el formulario de Facturas con los datos de la factura seleccionada
       document.getElementById('factura-fecha').value = e.target.getAttribute('data-fecha');
       document.getElementById('factura-bruta').value = parseFloat(e.target.getAttribute('data-bruta')).toFixed(2);
       document.getElementById('factura-neta').value = parseFloat(e.target.getAttribute('data-neta')).toFixed(2);
       document.getElementById('factura-retencion').value = parseFloat(e.target.getAttribute('data-retencion')).toFixed(2);
       document.getElementById('factura-empresa').value = e.target.getAttribute('data-empresa');
-      // Opcional: asignar el id a un campo oculto
-      // document.getElementById('factura-current-id').value = e.target.getAttribute('data-id');
-      // También puedes actualizar el texto del botón de envío para indicar "Actualizar Factura"
+      // Asignar el ID de la factura al campo oculto
+      document.getElementById('factura-current-id').value = e.target.getAttribute('data-id');
+      // Cambiar el texto del botón de envío para indicar "Actualizar Factura"
+      document.getElementById('factura-submit-btn').textContent = "Actualizar Factura";
     }
   });
 });
