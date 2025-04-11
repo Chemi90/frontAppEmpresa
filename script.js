@@ -568,125 +568,144 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // ----- Gastos Varios -----
-  const gastoTipoSelect = document.getElementById('gasto-tipo');
-  const gastoTotalInput = document.getElementById('gasto-total');
-  const gastoCheckbox = document.getElementById('gasto-compartido');
-  const gastoPorcentajeInput = document.getElementById('gasto-porcentaje');
-  const gastoDeducibleInput = document.getElementById('gasto-deducible');
-  const gastoCurrentId = document.getElementById('gasto-current-id');
-  const gastoSubmitBtn = document.getElementById('gasto-submit-btn');
-  const gastoCancelBtn = document.getElementById('gasto-cancel-btn');
+const gastoTipoSelect = document.getElementById('gasto-tipo');
+const gastoTotalInput = document.getElementById('gasto-total');
+const gastoCheckbox = document.getElementById('gasto-compartido');
+const gastoPorcentajeInput = document.getElementById('gasto-porcentaje');
+const gastoDeducibleInput = document.getElementById('gasto-deducible');
+const gastoCurrentId = document.getElementById('gasto-current-id');
+const gastoSubmitBtn = document.getElementById('gasto-submit-btn');
+const gastoCancelBtn = document.getElementById('gasto-cancel-btn');
 
-  function setDefaultPercentage() {
-    const tipo = gastoTipoSelect.value;
-    let defaultPercentage = 100;
-    if(tipo === "Terminal móvil") {
-      defaultPercentage = 50;
-    } else if(tipo === "ChatGPT Plus") {
-      defaultPercentage = 100;
-    } else if(tipo === "Electricidad") {
-      defaultPercentage = 33;
-    } else if(tipo === "Internet") {
-      defaultPercentage = 26.16;
-    } else if(tipo === "Seguro coche") {
-      defaultPercentage = 40;
-    } else if(tipo === "Gasolina") {
-      defaultPercentage = 40;
-    } else if(tipo === "IBI vivienda") {
-      defaultPercentage = 33;
-    } else if(tipo === "Comunidad de vecinos") {
-      defaultPercentage = 33;
-    }
-    gastoPorcentajeInput.value = defaultPercentage;
+// Nuevo: referencia al checkbox para dividir deducción
+const dividirDeduccionCheckbox = document.getElementById('dividir-deduccion');
+
+function setDefaultPercentage() {
+  const tipo = gastoTipoSelect.value;
+  let defaultPercentage = 100;
+  if(tipo === "Terminal móvil") {
+    defaultPercentage = 50;
+  } else if(tipo === "ChatGPT Plus") {
+    defaultPercentage = 100;
+  } else if(tipo === "Electricidad") {
+    defaultPercentage = 33;
+  } else if(tipo === "Internet") {
+    defaultPercentage = 26.16;
+  } else if(tipo === "Seguro coche") {
+    defaultPercentage = 40;
+  } else if(tipo === "Gasolina") {
+    defaultPercentage = 40;
+  } else if(tipo === "IBI vivienda") {
+    defaultPercentage = 33;
+  } else if(tipo === "Comunidad de vecinos") {
+    defaultPercentage = 33;
   }
+  gastoPorcentajeInput.value = defaultPercentage;
+}
 
-  gastoTipoSelect.addEventListener('change', function() {
+gastoTipoSelect.addEventListener('change', function() {
+  setDefaultPercentage();
+  updateGastoDeducible();
+});
+
+gastoCheckbox.addEventListener('change', function() {
+  if(gastoCheckbox.checked) {
+    gastoPorcentajeInput.disabled = false;
+  } else {
+    gastoPorcentajeInput.disabled = true;
     setDefaultPercentage();
-  });
+  }
+  updateGastoDeducible();
+});
 
-  gastoCheckbox.addEventListener('change', function() {
-    if(gastoCheckbox.checked) {
-      gastoPorcentajeInput.disabled = false;
-    } else {
-      gastoPorcentajeInput.disabled = true;
-      setDefaultPercentage();
-    }
-    updateGastoDeducible();
-  });
+// Nuevo: actualiza la deducción al cambiar el checkbox de dividir deducción
+dividirDeduccionCheckbox.addEventListener('change', updateGastoDeducible);
 
-  function updateGastoDeducible() {
-    const total = parseFloat(gastoTotalInput.value) || 0;
+function updateGastoDeducible() {
+  const total = parseFloat(gastoTotalInput.value) || 0;
+  
+  // Si el importe supera 300 y se marca la opción de dividir la deducción
+  if(total > 300 && dividirDeduccionCheckbox.checked) {
+    // Se deduce el 50% del total y se reparte en 4 años (valor del año actual)
+    const yearlyDeduction = (total * 0.5) / 4;
+    gastoDeducibleInput.value = yearlyDeduction.toFixed(2);
+  } else {
+    // Cálculo normal: se utiliza el porcentaje indicado
     const porcentaje = parseFloat(gastoPorcentajeInput.value) || 0;
     const deducible = total * (porcentaje / 100);
     gastoDeducibleInput.value = deducible.toFixed(2);
   }
+}
 
-  gastoTotalInput.addEventListener('input', updateGastoDeducible);
-  gastoPorcentajeInput.addEventListener('input', updateGastoDeducible);
+gastoTotalInput.addEventListener('input', updateGastoDeducible);
+gastoPorcentajeInput.addEventListener('input', updateGastoDeducible);
 
-  const gastosForm = document.getElementById('gastos-form');
-  gastosForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(gastosForm);
-    formData.set('gasto_compartido', gastoCheckbox.checked ? '1' : '0');
+// El resto del código para enviar el formulario de gastos (POST/PUT) permanece igual
+const gastosForm = document.getElementById('gastos-form');
+gastosForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const formData = new FormData(gastosForm);
+  formData.set('gasto_compartido', gastoCheckbox.checked ? '1' : '0');
+  // Incluir el valor del checkbox dividir deducción (1 si está marcado, 0 si no)
+  formData.set('dividir_deduccion', dividirDeduccionCheckbox.checked ? '1' : '0');
 
-    if(gastoCurrentId.value) {
-      const obj = {};
-      formData.forEach((value, key) => {
-        obj[key] = value;
-      });
-      fetch(`https://josemiguelruizguevara.com:5000/api/gastos/${gastoCurrentId.value}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(obj)
-      })
-      .then(response => {
-        if (!response.ok) throw new Error('Error al actualizar gasto');
-        return response.json();
-      })
-      .then(data => {
-        alert("Gasto actualizado exitosamente.");
-        gastosForm.reset();
-        setDefaultPercentage();
-        gastoDeducibleInput.value = "";
-        gastoCurrentId.value = "";
-        gastoSubmitBtn.textContent = "Agregar Gasto";
-        gastoCancelBtn.style.display = "none";
-      })
-      .catch(error => {
-        alert("Error: " + error.message);
-      });
-    } else {
-      fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => {
-        if (!response.ok) {
-          return response.json().then(err => { 
-            throw new Error(err.error || 'Error al agregar gasto'); 
-          });
-        }
-        return response.json();
-      })
-      .then(data => {
-        alert("Gasto agregado exitosamente. ID: " + data.id);
-        gastosForm.reset();
-        setDefaultPercentage();
-        gastoDeducibleInput.value = "";
-      })
-      .catch(error => {
-        alert("Error: " + error.message);
-      });
-    }
-  });
+  if(gastoCurrentId.value) {
+    const obj = {};
+    formData.forEach((value, key) => {
+      obj[key] = value;
+    });
+    fetch(`https://josemiguelruizguevara.com:5000/api/gastos/${gastoCurrentId.value}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(obj)
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Error al actualizar gasto');
+      return response.json();
+    })
+    .then(data => {
+      alert("Gasto actualizado exitosamente.");
+      gastosForm.reset();
+      setDefaultPercentage();
+      gastoDeducibleInput.value = "";
+      gastoCurrentId.value = "";
+      gastoSubmitBtn.textContent = "Agregar Gasto";
+      gastoCancelBtn.style.display = "none";
+    })
+    .catch(error => {
+      alert("Error: " + error.message);
+    });
+  } else {
+    fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => { 
+          throw new Error(err.error || 'Error al agregar gasto'); 
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert("Gasto agregado exitosamente. ID: " + data.id);
+      gastosForm.reset();
+      setDefaultPercentage();
+      gastoDeducibleInput.value = "";
+    })
+    .catch(error => {
+      alert("Error: " + error.message);
+    });
+  }
+});
 
-  gastoCancelBtn.addEventListener('click', function() {
-    gastosForm.reset();
-    gastoCurrentId.value = "";
-    gastoSubmitBtn.textContent = "Agregar Gasto";
-    gastoCancelBtn.style.display = "none";
-  });
+gastoCancelBtn.addEventListener('click', function() {
+  gastosForm.reset();
+  gastoCurrentId.value = "";
+  gastoSubmitBtn.textContent = "Agregar Gasto";
+  gastoCancelBtn.style.display = "none";
+});
 
   const gastosFilterBtn = document.getElementById('gastos-filter-btn');
   gastosFilterBtn.addEventListener('click', function() {

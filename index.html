@@ -172,8 +172,8 @@
       </div>
     </section>
     
-    <!-- Sección: Gastos Varios -->
-    <section id="gastos" class="tab-content" style="display:none;">
+     <!-- Sección: Gastos Varios -->
+     <section id="gastos" class="tab-content" style="display:none;">
       <h2>Gastos Varios</h2>
       <form id="gastos-form">
          <!-- Campo oculto para saber si se está editando -->
@@ -209,6 +209,10 @@
 
          <label for="gasto-nota">Justificación/Nota:</label>
          <textarea id="gasto-nota" name="nota"></textarea>
+
+         <!-- Nuevo checkbox para deducción en 4 años -->
+         <label for="dividir-deduccion">Dividir deducción en 4 años (50% deducible):</label>
+         <input type="checkbox" id="dividir-deduccion" name="dividir_deduccion">
 
          <button type="submit" id="gasto-submit-btn">Agregar Gasto</button>
          <button type="button" id="gasto-cancel-btn" style="display:none;">Cancelar</button>
