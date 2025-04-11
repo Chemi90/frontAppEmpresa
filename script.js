@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // ----------------- Login -----------------
+  // =====================================================
+  // Login
+  // =====================================================
   const loginScreen = document.getElementById('login-screen');
   const mainContent = document.getElementById('main-content');
   const loginButton = document.getElementById('login-button');
@@ -34,9 +36,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // ----------------- Navegación por pestañas -----------------
+  // =====================================================
+  // Navegación por Pestañas
+  // =====================================================
   const tabButtons = document.querySelectorAll('.tab-button');
   const tabContents = document.querySelectorAll('.tab-content');
+
   tabButtons.forEach(button => {
     button.addEventListener('click', function() {
       const target = button.getAttribute('data-target');
@@ -46,25 +51,29 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // ----------------- Desplazamientos -----------------
+  // =====================================================
+  // Sección: Desplazamientos
+  // =====================================================
   const despKmInput = document.getElementById('desp-km');
   const despDeduccionInput = document.getElementById('desp-deduccion');
   const despGastoInput = document.getElementById('desp-gasto');
   const despCurrentId = document.getElementById('desp-current-id');
   const despSubmitBtn = document.getElementById('desp-submit-btn');
   const despCancelBtn = document.getElementById('desp-cancel-btn');
+  const despForm = document.getElementById('desplazamientos-form');
 
   function updateTotalCost() {
     const km = parseFloat(despKmInput.value) || 0;
     const costPerKm = parseFloat(despDeduccionInput.value) || 0;
     despGastoInput.value = (km * costPerKm).toFixed(2);
   }
+
   despKmInput.addEventListener('input', updateTotalCost);
   despDeduccionInput.addEventListener('input', updateTotalCost);
 
-  const despForm = document.getElementById('desplazamientos-form');
   despForm.addEventListener('submit', function(e) {
     e.preventDefault();
+
     const formData = {
       fecha: document.getElementById('desp-fecha').value,
       destino: document.getElementById('desp-destino').value,
@@ -76,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
       gasto: document.getElementById('desp-gasto').value
     };
 
+    // Actualización de desplazamiento (si se tiene ID) o alta
     if (despCurrentId.value) {
       fetch(`https://josemiguelruizguevara.com:5000/api/desplazamientos/${despCurrentId.value}`, {
         method: 'PUT',
@@ -128,12 +138,93 @@ document.addEventListener('DOMContentLoaded', function() {
     despCancelBtn.style.display = "none";
   });
 
-  // ----------------- Tickets de Comida -----------------
+  const despFilterBtn = document.getElementById('desp-filter-btn');
+  despFilterBtn.addEventListener('click', function() {
+    const startDate = document.getElementById('desp-filter-start').value;
+    const endDate = document.getElementById('desp-filter-end').value;
+    if (!startDate || !endDate) {
+      alert("Por favor, seleccione ambas fechas de filtro.");
+      return;
+    }
+    fetch(`https://josemiguelruizguevara.com:5000/api/desplazamientos?start=${startDate}&end=${endDate}`)
+      .then(response => response.json())
+      .then(data => {
+        const resultsContainer = document.getElementById('desp-results');
+        resultsContainer.innerHTML = "";
+        let total = 0;
+        if (data.length === 0) {
+          resultsContainer.innerHTML = "<p>No se encontraron desplazamientos en esas fechas.</p>";
+          document.getElementById('desp-total').textContent = "0.00";
+        } else {
+          const table = document.createElement('table');
+          table.style.width = '100%';
+          table.setAttribute('border', '1');
+          const header = table.createTHead();
+          const headerRow = header.insertRow();
+          const columns = ["ID", "Fecha", "Origen", "Destino", "Km", "Descripción", "Día", "Cliente", "Deducción", "Gasto", "Acciones"];
+          columns.forEach(col => {
+            const th = document.createElement('th');
+            th.textContent = col;
+            headerRow.appendChild(th);
+          });
+          const tbody = document.createElement('tbody');
+          data.forEach(item => {
+            const row = tbody.insertRow();
+            row.insertCell().textContent = item.id;
+            row.insertCell().textContent = item.fecha;
+            row.insertCell().textContent = item.origen;
+            row.insertCell().textContent = item.destino;
+            row.insertCell().textContent = item.distancia;
+            row.insertCell().textContent = item.descripcion;
+            row.insertCell().textContent = item.dia;
+            row.insertCell().textContent = item.cliente;
+            row.insertCell().textContent = item.deduccion;
+            row.insertCell().textContent = item.gasto;
+            total += parseFloat(item.gasto) || 0;
+            // Botones de editar y eliminar
+            const actionsCell = row.insertCell();
+            actionsCell.innerHTML = `
+              <button class="edit-desp" 
+                data-id="${item.id}"
+                data-fecha="${item.fecha}"
+                data-destino="${item.destino}"
+                data-distancia="${item.distancia}"
+                data-descripcion="${item.descripcion}"
+                data-dia="${item.dia}"
+                data-cliente="${item.cliente}"
+                data-deduccion="${item.deduccion}"
+                data-gasto="${item.gasto}"
+              >✏️</button>
+              <button class="delete-desp" data-id="${item.id}">🗑️</button>`;
+          });
+          table.appendChild(tbody);
+          resultsContainer.appendChild(table);
+          document.getElementById('desp-total').textContent = total.toFixed(2);
+        }
+      })
+      .catch(error => {
+        alert("Error al filtrar desplazamientos: " + error.message);
+      });
+  });
+
+  document.getElementById('desplazamientos-export-btn').addEventListener('click', function() {
+    const startDate = document.getElementById('desp-filter-start').value;
+    const endDate = document.getElementById('desp-filter-end').value;
+    let url = 'https://josemiguelruizguevara.com:5000/api/desplazamientos/export';
+    if (startDate && endDate) {
+      url += `?start=${startDate}&end=${endDate}`;
+    }
+    window.open(url, '_blank');
+  });
+
+  // =====================================================
+  // Sección: Tickets de Comida
+  // =====================================================
   const ticketsForm = document.getElementById('tickets-form');
   const ticketAutofillBtn = document.getElementById('ticket-autofill-btn');
   const ticketCancelBtn = document.getElementById('ticket-cancel-btn');
-  
-  if(ticketAutofillBtn) {
+
+  if (ticketAutofillBtn) {
     ticketAutofillBtn.addEventListener('click', function() {
       const formData = new FormData();
       const fotoInput = document.getElementById('ticket-foto');
@@ -201,7 +292,16 @@ document.addEventListener('DOMContentLoaded', function() {
         alert("Error: " + error.message);
       });
     } else {
-      const formData = new FormData(ticketsForm);
+      const formData = new FormData();
+      const fotoInput = document.getElementById('ticket-foto');
+      if (fotoInput.files.length > 0) {
+        formData.append('foto', fotoInput.files[0]);
+      }
+      formData.append('localizacion', document.getElementById('ticket-localizacion').value);
+      formData.append('dinero', document.getElementById('ticket-dinero').value);
+      formData.append('motivo', document.getElementById('ticket-motivo').value);
+      formData.append('fecha', document.getElementById('ticket-fecha').value);
+
       fetch('https://josemiguelruizguevara.com:5000/api/tickets', {
         method: 'POST',
         body: formData
@@ -231,12 +331,77 @@ document.addEventListener('DOMContentLoaded', function() {
     ticketCancelBtn.style.display = "none";
   });
 
-  // ----------------- Facturas -----------------
-  const facturasForm = document.getElementById('facturas-form');
+  const ticketFilterBtn = document.getElementById('ticket-filter-btn');
+  ticketFilterBtn.addEventListener('click', function() {
+    const startDate = document.getElementById('ticket-filter-start').value;
+    const endDate = document.getElementById('ticket-filter-end').value;
+    if (!startDate || !endDate) {
+      alert("Por favor, seleccione ambas fechas de filtro.");
+      return;
+    }
+    fetch(`https://josemiguelruizguevara.com:5000/api/tickets?start=${startDate}&end=${endDate}`)
+      .then(response => response.json())
+      .then(data => {
+        let totalDinero = 0;
+        let html = "";
+        if (data.length === 0) {
+          html = "<p>No se encontraron tickets en esas fechas.</p>";
+          document.getElementById('ticket-total').textContent = "0.00";
+        } else {
+          html += "<table border='1' style='width:100%;'><thead><tr>";
+          const cols = ["ID", "Foto", "Localización", "Dinero", "Motivo", "Fecha", "Acciones"];
+          cols.forEach(col => {
+            html += `<th>${col}</th>`;
+          });
+          html += "</tr></thead><tbody>";
+          data.forEach(item => {
+            html += "<tr>";
+            html += `<td>${item.id}</td>`;
+            html += `<td>${item.foto}</td>`;
+            html += `<td>${item.localizacion}</td>`;
+            html += `<td>${item.dinero}</td>`;
+            html += `<td>${item.motivo}</td>`;
+            html += `<td>${item.fecha}</td>`;
+            html += `<td>
+                      <button class="edit-ticket" 
+                        data-id="${item.id}"
+                        data-localizacion="${item.localizacion}"
+                        data-dinero="${item.dinero}"
+                        data-motivo="${item.motivo}"
+                        data-fecha="${item.fecha}"
+                      >✏️</button>
+                      <button class="delete-ticket" data-id="${item.id}">🗑️</button>
+                     </td>`;
+            html += "</tr>";
+            totalDinero += parseFloat(item.dinero) || 0;
+          });
+          html += "</tbody></table>";
+          document.getElementById('ticket-total').textContent = totalDinero.toFixed(2);
+        }
+        document.getElementById('ticket-results').innerHTML = html;
+      })
+      .catch(error => {
+        alert("Error al filtrar tickets: " + error.message);
+      });
+  });
+
+  document.getElementById('ticket-export-btn').addEventListener('click', function() {
+    const startDate = document.getElementById('ticket-filter-start').value;
+    const endDate = document.getElementById('ticket-filter-end').value;
+    let url = 'https://josemiguelruizguevara.com:5000/api/tickets/export';
+    if (startDate && endDate) {
+      url += `?start=${startDate}&end=${endDate}`;
+    }
+    window.open(url, '_blank');
+  });
+
+  // =====================================================
+  // Sección: Facturas
+  // =====================================================
   const facturaAutofillBtn = document.getElementById('factura-autofill-btn');
   const facturaCancelBtn = document.getElementById('factura-cancel-btn');
-  
-  if(facturaAutofillBtn) {
+
+  if (facturaAutofillBtn) {
     facturaAutofillBtn.addEventListener('click', function() {
       const formData = new FormData();
       const archivoInput = document.getElementById('factura-archivo');
@@ -276,6 +441,8 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   }
+
+  const facturasForm = document.getElementById('facturas-form');
 
   facturasForm.addEventListener('submit', function(e) {
     e.preventDefault();
@@ -318,6 +485,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (archivoInput.files.length > 0) {
         formData.append('archivo', archivoInput.files[0]);
       }
+
       fetch('https://josemiguelruizguevara.com:5000/api/facturas', {
         method: 'POST',
         body: formData
@@ -347,9 +515,79 @@ document.addEventListener('DOMContentLoaded', function() {
     facturaCancelBtn.style.display = "none";
   });
 
-  // ----------------- Gastos Varios -----------------
+  const facturaFilterBtn = document.getElementById('factura-filter-btn');
+  facturaFilterBtn.addEventListener('click', function() {
+    const startDate = document.getElementById('factura-filter-start').value;
+    const endDate = document.getElementById('factura-filter-end').value;
+    if (!startDate || !endDate) {
+      alert("Por favor, seleccione ambas fechas de filtro.");
+      return;
+    }
+    fetch(`https://josemiguelruizguevara.com:5000/api/facturas?start=${startDate}&end=${endDate}`)
+      .then(response => response.json())
+      .then(data => {
+        let totalBruto = 0;
+        let totalNeto = 0;
+        let html = "";
+        if (data.length === 0) {
+          html = "<p>No se encontraron facturas en esas fechas.</p>";
+        } else {
+          html += "<table border='1' style='width:100%;'><thead><tr>";
+          const cols = ["ID", "Fecha", "Bruta (€)", "Neta (€)", "Retención (%)", "Empresa", "Archivo", "Acciones"];
+          cols.forEach(col => {
+            html += `<th>${col}</th>`;
+          });
+          html += "</tr></thead><tbody>";
+          data.forEach(item => {
+            html += "<tr>";
+            html += `<td>${item.id}</td>`;
+            html += `<td>${item.fecha}</td>`;
+            html += `<td>${item.cantidad_bruta}</td>`;
+            html += `<td>${item.cantidad_neta}</td>`;
+            html += `<td>${item.retencion}</td>`;
+            html += `<td>${item.nombre_empresa}</td>`;
+            html += `<td>${item.archivo}</td>`;
+            html += `<td>
+                        <button class="edit-factura" 
+                          data-id="${item.id}"
+                          data-fecha="${item.fecha}"
+                          data-bruta="${item.cantidad_bruta}"
+                          data-neta="${item.cantidad_neta}"
+                          data-retencion="${item.retencion}"
+                          data-empresa="${item.nombre_empresa}"
+                        >✏️</button>
+                        <button class="delete-factura" data-id="${item.id}">🗑️</button>
+                     </td>`;
+            html += "</tr>";
+            totalBruto += parseFloat(item.cantidad_bruta) || 0;
+            totalNeto += parseFloat(item.cantidad_neta) || 0;
+          });
+          html += "</tbody></table>";
+        }
+        document.getElementById('factura-results').innerHTML = html;
+        document.getElementById('factura-total-bruto').textContent = totalBruto.toFixed(2);
+        document.getElementById('factura-total-neto').textContent = totalNeto.toFixed(2);
+      })
+      .catch(error => {
+        alert("Error al filtrar facturas: " + error.message);
+      });
+  });
+
+  document.getElementById('factura-export-btn').addEventListener('click', function() {
+    const startDate = document.getElementById('factura-filter-start').value;
+    const endDate = document.getElementById('factura-filter-end').value;
+    let url = 'https://josemiguelruizguevara.com:5000/api/facturas/export';
+    if (startDate && endDate) {
+      url += `?start=${startDate}&end=${endDate}`;
+    }
+    window.open(url, '_blank');
+  });
+
+  // =====================================================
+  // Sección: Gastos Varios
+  // =====================================================
+  // Nota: Se agrega la declaración de la variable "gastosForm" para evitar errores.
   const gastosForm = document.getElementById('gastos-form');
-  // Elementos de Gastos:
   const gastoTipoSelect = document.getElementById('gasto-tipo');
   const gastoTotalInput = document.getElementById('gasto-total');
   const gastoCheckbox = document.getElementById('gasto-compartido');
@@ -360,31 +598,37 @@ document.addEventListener('DOMContentLoaded', function() {
   const gastoCancelBtn = document.getElementById('gasto-cancel-btn');
   const dividirDeduccionCheckbox = document.getElementById('dividir-deduccion');
 
-  function setDefaultPercentageGastos() {
+  function setDefaultPercentage() {
     const tipo = gastoTipoSelect.value;
     let defaultPercentage = 100;
-    if (tipo === "Terminal móvil") {
-      defaultPercentage = 50;
-    } else if (tipo === "ChatGPT Plus") {
-      defaultPercentage = 100;
-    } else if (tipo === "Electricidad") {
-      defaultPercentage = 33;
-    } else if (tipo === "Internet") {
-      defaultPercentage = 26.16;
-    } else if (tipo === "Seguro coche") {
-      defaultPercentage = 40;
-    } else if (tipo === "Gasolina") {
-      defaultPercentage = 40;
-    } else if (tipo === "IBI vivienda") {
-      defaultPercentage = 33;
-    } else if (tipo === "Comunidad de vecinos") {
-      defaultPercentage = 33;
+    switch(tipo) {
+      case "Terminal móvil":
+        defaultPercentage = 50;
+        break;
+      case "Electricidad":
+        defaultPercentage = 33;
+        break;
+      case "Internet":
+        defaultPercentage = 26.16;
+        break;
+      case "Seguro coche":
+      case "Gasolina":
+        defaultPercentage = 40;
+        break;
+      case "IBI vivienda":
+      case "Comunidad de vecinos":
+        defaultPercentage = 33;
+        break;
+      case "ChatGPT Plus":
+      default:
+        defaultPercentage = 100;
+        break;
     }
     gastoPorcentajeInput.value = defaultPercentage;
   }
 
   gastoTipoSelect.addEventListener('change', function() {
-    setDefaultPercentageGastos();
+    setDefaultPercentage();
     updateGastoDeducible();
   });
 
@@ -393,7 +637,7 @@ document.addEventListener('DOMContentLoaded', function() {
       gastoPorcentajeInput.disabled = false;
     } else {
       gastoPorcentajeInput.disabled = true;
-      setDefaultPercentageGastos();
+      setDefaultPercentage();
     }
     updateGastoDeducible();
   });
@@ -402,14 +646,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const total = parseFloat(gastoTotalInput.value) || 0;
     const porcentaje = parseFloat(gastoPorcentajeInput.value) || 0;
     const overallDeduction = total * (porcentaje / 100);
-  
+    
     if (total > 300 && dividirDeduccionCheckbox.checked) {
       gastoDeducibleInput.value = (overallDeduction / 4).toFixed(2);
     } else {
       gastoDeducibleInput.value = overallDeduction.toFixed(2);
     }
   }
-  
+
   gastoTotalInput.addEventListener('input', updateGastoDeducible);
   gastoPorcentajeInput.addEventListener('input', updateGastoDeducible);
   dividirDeduccionCheckbox.addEventListener('change', updateGastoDeducible);
@@ -444,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       alert("Gastos agregados exitosamente. IDs: " + responses.map(r => r.id).join(', '));
       gastosForm.reset();
-      setDefaultPercentageGastos();
+      setDefaultPercentage();
       gastoDeducibleInput.value = "";
     } else {
       fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
@@ -462,7 +706,7 @@ document.addEventListener('DOMContentLoaded', function() {
       .then(data => {
         alert("Gasto agregado exitosamente. ID: " + data.id);
         gastosForm.reset();
-        setDefaultPercentageGastos();
+        setDefaultPercentage();
         gastoDeducibleInput.value = "";
       })
       .catch(error => {
@@ -512,18 +756,18 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `<td>${item.nota || ''}</td>`;
             html += `<td>${item.gasto_compartido == 1 ? 'Sí' : 'No'}</td>`;
             html += `<td>
-              <button class="edit-gasto" 
-                data-id="${item.id}"
-                data-fecha="${item.fecha}"
-                data-tipo="${item.tipo}"
-                data-importe_total="${item.importe_total}"
-                data-porcentaje_deducible="${item.porcentaje_deducible}"
-                data-importe_deducible="${item.importe_deducible}"
-                data-nota="${item.nota}"
-                data-gasto_compartido="${item.gasto_compartido}"
-              >✏️</button>
-              <button class="delete-gasto" data-id="${item.id}">🗑️</button>
-              </td>`;
+                        <button class="edit-gasto" 
+                          data-id="${item.id}"
+                          data-fecha="${item.fecha}"
+                          data-tipo="${item.tipo}"
+                          data-importe_total="${item.importe_total}"
+                          data-porcentaje_deducible="${item.porcentaje_deducible}"
+                          data-importe_deducible="${item.importe_deducible}"
+                          data-nota="${item.nota}"
+                          data-gasto_compartido="${item.gasto_compartido}"
+                        >✏️</button>
+                        <button class="delete-gasto" data-id="${item.id}">🗑️</button>
+                     </td>`;
             html += "</tr>";
             totalGastos += parseFloat(item.importe_total) || 0;
           });
@@ -547,7 +791,142 @@ document.addEventListener('DOMContentLoaded', function() {
     window.open(url, '_blank');
   });
 
-  // ----------------- Service Worker -----------------
+  // =====================================================
+  // Delegación de Eventos para Edición y Eliminación
+  // =====================================================
+  document.addEventListener('click', function(e) {
+    // Desplazamientos
+    if (e.target.classList.contains('delete-desp')) {
+      const id = e.target.getAttribute('data-id');
+      if (confirm("¿Está seguro de eliminar este desplazamiento?")) {
+        fetch(`https://josemiguelruizguevara.com:5000/api/desplazamientos/${id}`, {
+          method: 'DELETE'
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Error al eliminar desplazamiento');
+          return response.json();
+        })
+        .then(data => {
+          alert("Desplazamiento eliminado.");
+          e.target.parentElement.parentElement.remove();
+        })
+        .catch(error => {
+          alert("Error: " + error.message);
+        });
+      }
+    }
+    if (e.target.classList.contains('edit-desp')) {
+      despCurrentId.value = e.target.getAttribute('data-id');
+      document.getElementById('desp-fecha').value = e.target.getAttribute('data-fecha');
+      document.getElementById('desp-destino').value = e.target.getAttribute('data-destino');
+      document.getElementById('desp-km').value = e.target.getAttribute('data-distancia');
+      document.getElementById('desp-descripcion').value = e.target.getAttribute('data-descripcion');
+      document.getElementById('desp-dia').value = e.target.getAttribute('data-dia');
+      document.getElementById('desp-cliente').value = e.target.getAttribute('data-cliente');
+      document.getElementById('desp-deduccion').value = e.target.getAttribute('data-deduccion');
+      document.getElementById('desp-gasto').value = e.target.getAttribute('data-gasto');
+      despSubmitBtn.textContent = "Actualizar Desplazamiento";
+      despCancelBtn.style.display = "inline-block";
+      window.scrollTo(0, 0);
+    }
+
+    // Gastos
+    if (e.target.classList.contains('delete-gasto')) {
+      const id = e.target.getAttribute('data-id');
+      if (confirm("¿Está seguro de eliminar este gasto?")) {
+        fetch(`https://josemiguelruizguevara.com:5000/api/gastos/${id}`, {
+          method: 'DELETE'
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Error al eliminar gasto');
+          return response.json();
+        })
+        .then(data => {
+          alert("Gasto eliminado.");
+          e.target.parentElement.parentElement.remove();
+        })
+        .catch(error => {
+          alert("Error: " + error.message);
+        });
+      }
+    }
+    if (e.target.classList.contains('edit-gasto')) {
+      gastoCurrentId.value = e.target.getAttribute('data-id');
+      document.getElementById('gasto-fecha').value = e.target.getAttribute('data-fecha');
+      document.getElementById('gasto-tipo').value = e.target.getAttribute('data-tipo');
+      document.getElementById('gasto-total').value = e.target.getAttribute('data-importe_total');
+      document.getElementById('gasto-porcentaje').value = e.target.getAttribute('data-porcentaje_deducible');
+      document.getElementById('gasto-deducible').value = e.target.getAttribute('data-importe_deducible');
+      document.getElementById('gasto-nota').value = e.target.getAttribute('data-nota');
+      document.getElementById('gasto-compartido').checked = (e.target.getAttribute('data-gasto_compartido') == 1);
+      gastoSubmitBtn.textContent = "Actualizar Gasto";
+      gastoCancelBtn.style.display = "inline-block";
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+    // Tickets
+    if (e.target.classList.contains('delete-ticket')) {
+      const id = e.target.getAttribute('data-id');
+      if (confirm("¿Está seguro de eliminar este ticket?")) {
+        fetch(`https://josemiguelruizguevara.com:5000/api/tickets/${id}`, {
+          method: 'DELETE'
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Error al eliminar ticket');
+          return response.json();
+        })
+        .then(data => {
+          alert("Ticket eliminado.");
+          e.target.parentElement.parentElement.remove();
+        })
+        .catch(error => {
+          alert("Error: " + error.message);
+        });
+      }
+    }
+    if (e.target.classList.contains('edit-ticket')) {
+      document.getElementById('ticket-localizacion').value = e.target.getAttribute('data-localizacion');
+      document.getElementById('ticket-dinero').value = parseFloat(e.target.getAttribute('data-dinero')).toFixed(2);
+      document.getElementById('ticket-motivo').value = e.target.getAttribute('data-motivo');
+      document.getElementById('ticket-fecha').value = e.target.getAttribute('data-fecha');
+      document.getElementById('ticket-current-id').value = e.target.getAttribute('data-id');
+      document.getElementById('ticket-submit-btn').textContent = "Actualizar Ticket";
+      ticketCancelBtn.style.display = "inline-block";
+    }
+    // Facturas
+    if (e.target.classList.contains('delete-factura')) {
+      const id = e.target.getAttribute('data-id');
+      if (confirm("¿Está seguro de eliminar esta factura?")) {
+        fetch(`https://josemiguelruizguevara.com:5000/api/facturas/${id}`, {
+          method: 'DELETE'
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Error al eliminar factura');
+          return response.json();
+        })
+        .then(data => {
+          alert("Factura eliminada.");
+          e.target.parentElement.parentElement.remove();
+        })
+        .catch(error => {
+          alert("Error: " + error.message);
+        });
+      }
+    }
+    if (e.target.classList.contains('edit-factura')) {
+      document.getElementById('factura-fecha').value = e.target.getAttribute('data-fecha');
+      document.getElementById('factura-bruta').value = parseFloat(e.target.getAttribute('data-bruta')).toFixed(2);
+      document.getElementById('factura-neta').value = parseFloat(e.target.getAttribute('data-neta')).toFixed(2);
+      document.getElementById('factura-retencion').value = parseFloat(e.target.getAttribute('data-retencion')).toFixed(2);
+      document.getElementById('factura-empresa').value = e.target.getAttribute('data-empresa');
+      document.getElementById('factura-current-id').value = e.target.getAttribute('data-id');
+      document.getElementById('factura-submit-btn').textContent = "Actualizar Factura";
+      facturaCancelBtn.style.display = "inline-block";
+    }
+  });
+
+  // =====================================================
+  // Registro de Service Worker
+  // =====================================================
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
