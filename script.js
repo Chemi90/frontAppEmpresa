@@ -586,7 +586,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // =====================================================
   // Sección: Gastos Varios
   // =====================================================
-  // Nota: Se agrega la declaración de la variable "gastosForm" para evitar errores.
+  // Nota: Se declara "gastosForm" y se capturan los elementos relevantes.
   const gastosForm = document.getElementById('gastos-form');
   const gastoTipoSelect = document.getElementById('gasto-tipo');
   const gastoTotalInput = document.getElementById('gasto-total');
@@ -597,6 +597,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const gastoSubmitBtn = document.getElementById('gasto-submit-btn');
   const gastoCancelBtn = document.getElementById('gasto-cancel-btn');
   const dividirDeduccionCheckbox = document.getElementById('dividir-deduccion');
+  // NUEVO: Checkbox para repetir el gasto 4 veces con fecha incrementada
+  const repetirGastoCheckbox = document.getElementById('gasto-repetir-cuatro');
 
   function setDefaultPercentage() {
     const tipo = gastoTipoSelect.value;
@@ -647,7 +649,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const porcentaje = parseFloat(gastoPorcentajeInput.value) || 0;
     const overallDeduction = total * (porcentaje / 100);
     
-    if (total > 300 && dividirDeduccionCheckbox.checked) {
+    // Si se selecciona repetir, se divide por 4 (tal como se espera en cada entrada)
+    if (repetirGastoCheckbox.checked) {
+      gastoDeducibleInput.value = (overallDeduction / 4).toFixed(2);
+    } else if (total > 300 && dividirDeduccionCheckbox.checked) {
       gastoDeducibleInput.value = (overallDeduction / 4).toFixed(2);
     } else {
       gastoDeducibleInput.value = overallDeduction.toFixed(2);
@@ -657,6 +662,7 @@ document.addEventListener('DOMContentLoaded', function() {
   gastoTotalInput.addEventListener('input', updateGastoDeducible);
   gastoPorcentajeInput.addEventListener('input', updateGastoDeducible);
   dividirDeduccionCheckbox.addEventListener('change', updateGastoDeducible);
+  repetirGastoCheckbox.addEventListener('change', updateGastoDeducible);
 
   gastosForm.addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -664,7 +670,8 @@ document.addEventListener('DOMContentLoaded', function() {
     formData.set('gasto_compartido', gastoCheckbox.checked ? '1' : '0');
     formData.set('dividir_deduccion', dividirDeduccionCheckbox.checked ? '1' : '0');
 
-    if (dividirDeduccionCheckbox.checked) {
+    // Si se selecciona el checkbox de repetir gasto (crear 4 entradas consecutivas)
+    if (repetirGastoCheckbox.checked) {
       let originalDateStr = document.getElementById('gasto-fecha').value;
       let originalDate = new Date(originalDateStr);
       let responses = [];
@@ -674,6 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let newDateStr = newDate.toISOString().substring(0, 10);
         let formDataClone = new FormData(gastosForm);
         formDataClone.set('fecha', newDateStr);
+        // Cada entrada tendrá el "importe deducible" ya calculado (de ser necesario dividido entre 4)
         const response = await fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
           method: 'POST',
           body: formDataClone
@@ -691,6 +699,7 @@ document.addEventListener('DOMContentLoaded', function() {
       setDefaultPercentage();
       gastoDeducibleInput.value = "";
     } else {
+      // Llamada única (sin repetir)
       fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
         method: 'POST',
         body: formData
