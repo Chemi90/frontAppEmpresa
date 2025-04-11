@@ -424,7 +424,6 @@ document.addEventListener('DOMContentLoaded', function() {
       let originalDateStr = document.getElementById('gasto-fecha').value;
       let originalDate = new Date(originalDateStr);
       let responses = [];
-      // Realiza 4 llamadas consecutivas con fechas ajustadas.
       for (let i = 0; i < 4; i++) {
         let newDate = new Date(originalDate);
         newDate.setFullYear(newDate.getFullYear() + i);

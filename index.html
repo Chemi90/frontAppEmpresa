@@ -62,7 +62,7 @@
         <button type="submit" id="desp-submit-btn">Agregar Desplazamiento</button>
         <button type="button" id="desp-cancel-btn" style="display:none;">Cancelar</button>
       </form>
-    
+      
       <div id="desp-filter">
         <h3>Filtrar por Fecha</h3>
         <label for="desp-filter-start">Desde:</label>
@@ -72,7 +72,6 @@
         <button id="desp-filter-btn">Filtrar</button>
       </div>
       
-      <!-- Contenedor para mostrar resultados -->
       <div id="desp-results"></div>
       
       <div id="desp-summary">
@@ -117,7 +116,6 @@
          <input type="date" id="ticket-filter-end">
          <button id="ticket-filter-btn">Filtrar</button>
       </div>
-      <!-- Contenedor para mostrar resultados -->
       <div id="ticket-results"></div>
       <div id="ticket-summary">
          <h3>Total de Tickets: <span id="ticket-total">0</span> €</h3>
@@ -164,7 +162,6 @@
          <input type="date" id="factura-filter-end">
          <button id="factura-filter-btn">Filtrar</button>
       </div>
-      <!-- Contenedor para mostrar resultados -->
       <div id="factura-results"></div>
       <div id="factura-summary">
          <h3>Total Facturas: Bruto <span id="factura-total-bruto">0</span> € - Neto <span id="factura-total-neto">0</span> €</h3>
@@ -173,7 +170,7 @@
     </section>
     
     <!-- Sección: Gastos Varios -->
-    <section id="gastos" class="tab-content" style="display:none;">
+    <section id="gastos" class="tab-content" style="display:block;">
       <h2>Gastos Varios</h2>
       <form id="gastos-form">
          <!-- Campo oculto para distinguir edición -->
@@ -227,7 +224,6 @@
          <button id="gastos-filter-btn">Filtrar</button>
       </div>
       
-      <!-- Contenedor para mostrar resultados -->
       <div id="gastos-results"></div>
       
       <div id="gastos-summary">
