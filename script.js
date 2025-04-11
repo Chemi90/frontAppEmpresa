@@ -567,7 +567,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.open(url, '_blank');
   });
 
-  // ----- Gastos Varios -----
+// ----- Gastos Varios -----
 const gastoTipoSelect = document.getElementById('gasto-tipo');
 const gastoTotalInput = document.getElementById('gasto-total');
 const gastoCheckbox = document.getElementById('gasto-compartido');
@@ -576,28 +576,28 @@ const gastoDeducibleInput = document.getElementById('gasto-deducible');
 const gastoCurrentId = document.getElementById('gasto-current-id');
 const gastoSubmitBtn = document.getElementById('gasto-submit-btn');
 const gastoCancelBtn = document.getElementById('gasto-cancel-btn');
-
-// Nuevo: referencia al checkbox para dividir deducción
+// Checkbox para dividir deducción en 4 años
 const dividirDeduccionCheckbox = document.getElementById('dividir-deduccion');
 
+// Función para establecer un porcentaje por defecto según el tipo de gasto.
 function setDefaultPercentage() {
   const tipo = gastoTipoSelect.value;
   let defaultPercentage = 100;
-  if(tipo === "Terminal móvil") {
+  if (tipo === "Terminal móvil") {
     defaultPercentage = 50;
-  } else if(tipo === "ChatGPT Plus") {
+  } else if (tipo === "ChatGPT Plus") {
     defaultPercentage = 100;
-  } else if(tipo === "Electricidad") {
+  } else if (tipo === "Electricidad") {
     defaultPercentage = 33;
-  } else if(tipo === "Internet") {
+  } else if (tipo === "Internet") {
     defaultPercentage = 26.16;
-  } else if(tipo === "Seguro coche") {
+  } else if (tipo === "Seguro coche") {
     defaultPercentage = 40;
-  } else if(tipo === "Gasolina") {
+  } else if (tipo === "Gasolina") {
     defaultPercentage = 40;
-  } else if(tipo === "IBI vivienda") {
+  } else if (tipo === "IBI vivienda") {
     defaultPercentage = 33;
-  } else if(tipo === "Comunidad de vecinos") {
+  } else if (tipo === "Comunidad de vecinos") {
     defaultPercentage = 33;
   }
   gastoPorcentajeInput.value = defaultPercentage;
@@ -609,7 +609,7 @@ gastoTipoSelect.addEventListener('change', function() {
 });
 
 gastoCheckbox.addEventListener('change', function() {
-  if(gastoCheckbox.checked) {
+  if (gastoCheckbox.checked) {
     gastoPorcentajeInput.disabled = false;
   } else {
     gastoPorcentajeInput.disabled = true;
@@ -618,64 +618,64 @@ gastoCheckbox.addEventListener('change', function() {
   updateGastoDeducible();
 });
 
-// Nuevo: actualiza la deducción al cambiar el checkbox de dividir deducción
-dividirDeduccionCheckbox.addEventListener('change', updateGastoDeducible);
-
+// Actualiza el valor del "Importe Deducible" según el total y el porcentaje;
+// si se activa la división, muestra la cuota anual (deducción total / 4).
 function updateGastoDeducible() {
   const total = parseFloat(gastoTotalInput.value) || 0;
+  const porcentaje = parseFloat(gastoPorcentajeInput.value) || 0;
+  const overallDeduction = total * (porcentaje / 100);
   
-  // Si el importe supera 300 y se marca la opción de dividir la deducción
-  if(total > 300 && dividirDeduccionCheckbox.checked) {
-    // Se deduce el 50% del total y se reparte en 4 años (valor del año actual)
-    const yearlyDeduction = (total * 0.5) / 4;
-    gastoDeducibleInput.value = yearlyDeduction.toFixed(2);
+  if (total > 300 && dividirDeduccionCheckbox.checked) {
+    gastoDeducibleInput.value = (overallDeduction / 4).toFixed(2);
   } else {
-    // Cálculo normal: se utiliza el porcentaje indicado
-    const porcentaje = parseFloat(gastoPorcentajeInput.value) || 0;
-    const deducible = total * (porcentaje / 100);
-    gastoDeducibleInput.value = deducible.toFixed(2);
+    gastoDeducibleInput.value = overallDeduction.toFixed(2);
   }
 }
 
 gastoTotalInput.addEventListener('input', updateGastoDeducible);
 gastoPorcentajeInput.addEventListener('input', updateGastoDeducible);
+dividirDeduccionCheckbox.addEventListener('change', updateGastoDeducible);
 
-// El resto del código para enviar el formulario de gastos (POST/PUT) permanece igual
-const gastosForm = document.getElementById('gastos-form');
-gastosForm.addEventListener('submit', function(e) {
+// Evento submit del formulario de gastos
+gastosForm.addEventListener('submit', async function(e) {
   e.preventDefault();
+  // Creamos el objeto FormData a partir del formulario.
   const formData = new FormData(gastosForm);
   formData.set('gasto_compartido', gastoCheckbox.checked ? '1' : '0');
-  // Incluir el valor del checkbox dividir deducción (1 si está marcado, 0 si no)
   formData.set('dividir_deduccion', dividirDeduccionCheckbox.checked ? '1' : '0');
 
-  if(gastoCurrentId.value) {
-    const obj = {};
-    formData.forEach((value, key) => {
-      obj[key] = value;
-    });
-    fetch(`https://josemiguelruizguevara.com:5000/api/gastos/${gastoCurrentId.value}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(obj)
-    })
-    .then(response => {
-      if (!response.ok) throw new Error('Error al actualizar gasto');
-      return response.json();
-    })
-    .then(data => {
-      alert("Gasto actualizado exitosamente.");
-      gastosForm.reset();
-      setDefaultPercentage();
-      gastoDeducibleInput.value = "";
-      gastoCurrentId.value = "";
-      gastoSubmitBtn.textContent = "Agregar Gasto";
-      gastoCancelBtn.style.display = "none";
-    })
-    .catch(error => {
-      alert("Error: " + error.message);
-    });
+  // Si el checkbox de dividir deducción está marcado, ejecutamos el endpoint 4 veces
+  if (dividirDeduccionCheckbox.checked) {
+    let originalDateStr = document.getElementById('gasto-fecha').value;
+    let originalDate = new Date(originalDateStr);
+    let responses = [];
+    // Ejecutar 4 llamadas consecutivas, ajustando la fecha en cada una.
+    for (let i = 0; i < 4; i++) {
+      let newDate = new Date(originalDate);
+      newDate.setFullYear(newDate.getFullYear() + i);
+      let newDateStr = newDate.toISOString().substring(0, 10);
+      // Clonamos los datos del formulario y actualizamos el valor de la fecha.
+      let formDataClone = new FormData(gastosForm);
+      formDataClone.set('fecha', newDateStr);
+      // Realizamos la llamada al endpoint.
+      const response = await fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
+        method: 'POST',
+        body: formDataClone
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert("Error al agregar gasto: " + (errorData.error || ''));
+        return;
+      }
+      const data = await response.json();
+      responses.push(data);
+    }
+    alert("Gastos agregados exitosamente. IDs: " + responses.map(r => r.id).join(', '));
+    gastosForm.reset();
+    setDefaultPercentage();
+    gastoDeducibleInput.value = "";
   } else {
+    // Si el checkbox no está marcado, se ejecuta el endpoint una sola vez.
     fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
       method: 'POST',
       body: formData
