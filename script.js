@@ -1,7 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // =====================================================
-  // Login
-  // =====================================================
+  // ----- Login -----
   const loginScreen = document.getElementById('login-screen');
   const mainContent = document.getElementById('main-content');
   const loginButton = document.getElementById('login-button');
@@ -36,12 +34,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // =====================================================
-  // Navegación por Pestañas
-  // =====================================================
+  // ----- Navegación por pestañas -----
   const tabButtons = document.querySelectorAll('.tab-button');
   const tabContents = document.querySelectorAll('.tab-content');
-
   tabButtons.forEach(button => {
     button.addEventListener('click', function() {
       const target = button.getAttribute('data-target');
@@ -51,29 +46,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // =====================================================
-  // Sección: Desplazamientos
-  // =====================================================
+  // ----- Desplazamientos -----
   const despKmInput = document.getElementById('desp-km');
   const despDeduccionInput = document.getElementById('desp-deduccion');
   const despGastoInput = document.getElementById('desp-gasto');
   const despCurrentId = document.getElementById('desp-current-id');
   const despSubmitBtn = document.getElementById('desp-submit-btn');
   const despCancelBtn = document.getElementById('desp-cancel-btn');
-  const despForm = document.getElementById('desplazamientos-form');
 
   function updateTotalCost() {
     const km = parseFloat(despKmInput.value) || 0;
     const costPerKm = parseFloat(despDeduccionInput.value) || 0;
     despGastoInput.value = (km * costPerKm).toFixed(2);
   }
-
   despKmInput.addEventListener('input', updateTotalCost);
   despDeduccionInput.addEventListener('input', updateTotalCost);
 
+  const despForm = document.getElementById('desplazamientos-form');
   despForm.addEventListener('submit', function(e) {
     e.preventDefault();
-
     const formData = {
       fecha: document.getElementById('desp-fecha').value,
       destino: document.getElementById('desp-destino').value,
@@ -85,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
       gasto: document.getElementById('desp-gasto').value
     };
 
-    // Actualización de desplazamiento (si se tiene ID) o alta
+    // Si hay un ID se actualiza; de lo contrario se agrega
     if (despCurrentId.value) {
       fetch(`https://josemiguelruizguevara.com:5000/api/desplazamientos/${despCurrentId.value}`, {
         method: 'PUT',
@@ -183,17 +174,16 @@ document.addEventListener('DOMContentLoaded', function() {
             total += parseFloat(item.gasto) || 0;
             // Botones de editar y eliminar
             const actionsCell = row.insertCell();
-            actionsCell.innerHTML = `
-              <button class="edit-desp" 
-                data-id="${item.id}"
-                data-fecha="${item.fecha}"
-                data-destino="${item.destino}"
-                data-distancia="${item.distancia}"
-                data-descripcion="${item.descripcion}"
-                data-dia="${item.dia}"
-                data-cliente="${item.cliente}"
-                data-deduccion="${item.deduccion}"
-                data-gasto="${item.gasto}"
+            actionsCell.innerHTML = `<button class="edit-desp" 
+              data-id="${item.id}"
+              data-fecha="${item.fecha}"
+              data-destino="${item.destino}"
+              data-distancia="${item.distancia}"
+              data-descripcion="${item.descripcion}"
+              data-dia="${item.dia}"
+              data-cliente="${item.cliente}"
+              data-deduccion="${item.deduccion}"
+              data-gasto="${item.gasto}"
               >✏️</button>
               <button class="delete-desp" data-id="${item.id}">🗑️</button>`;
           });
@@ -217,13 +207,10 @@ document.addEventListener('DOMContentLoaded', function() {
     window.open(url, '_blank');
   });
 
-  // =====================================================
-  // Sección: Tickets de Comida
-  // =====================================================
+  // ----- Tickets de Comida -----
   const ticketsForm = document.getElementById('tickets-form');
   const ticketAutofillBtn = document.getElementById('ticket-autofill-btn');
-  const ticketCancelBtn = document.getElementById('ticket-cancel-btn');
-
+  const ticketCancelBtn = document.getElementById('ticket-cancel-btn'); // Botón cancelar para Tickets
   if (ticketAutofillBtn) {
     ticketAutofillBtn.addEventListener('click', function() {
       const formData = new FormData();
@@ -265,6 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
   ticketsForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const ticketCurrentId = document.getElementById('ticket-current-id').value;
+    // Si existe el ID, se actualiza; de lo contrario se agrega
     if (ticketCurrentId) {
       const data = {
         localizacion: document.getElementById('ticket-localizacion').value,
@@ -363,15 +351,15 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `<td>${item.motivo}</td>`;
             html += `<td>${item.fecha}</td>`;
             html += `<td>
-                      <button class="edit-ticket" 
-                        data-id="${item.id}"
-                        data-localizacion="${item.localizacion}"
-                        data-dinero="${item.dinero}"
-                        data-motivo="${item.motivo}"
-                        data-fecha="${item.fecha}"
-                      >✏️</button>
-                      <button class="delete-ticket" data-id="${item.id}">🗑️</button>
-                     </td>`;
+                    <button class="edit-ticket" 
+                      data-id="${item.id}"
+                      data-localizacion="${item.localizacion}"
+                      data-dinero="${item.dinero}"
+                      data-motivo="${item.motivo}"
+                      data-fecha="${item.fecha}"
+                    >✏️</button>
+                    <button class="delete-ticket" data-id="${item.id}">🗑️</button>
+                   </td>`;
             html += "</tr>";
             totalDinero += parseFloat(item.dinero) || 0;
           });
@@ -395,12 +383,9 @@ document.addEventListener('DOMContentLoaded', function() {
     window.open(url, '_blank');
   });
 
-  // =====================================================
-  // Sección: Facturas
-  // =====================================================
+  // ----- Facturas -----
   const facturaAutofillBtn = document.getElementById('factura-autofill-btn');
-  const facturaCancelBtn = document.getElementById('factura-cancel-btn');
-
+  const facturaCancelBtn = document.getElementById('factura-cancel-btn'); // Botón cancelar para Facturas
   if (facturaAutofillBtn) {
     facturaAutofillBtn.addEventListener('click', function() {
       const formData = new FormData();
@@ -443,7 +428,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   const facturasForm = document.getElementById('facturas-form');
-
   facturasForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const facturaCurrentId = document.getElementById('factura-current-id').value;
@@ -548,16 +532,16 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `<td>${item.nombre_empresa}</td>`;
             html += `<td>${item.archivo}</td>`;
             html += `<td>
-                        <button class="edit-factura" 
-                          data-id="${item.id}"
-                          data-fecha="${item.fecha}"
-                          data-bruta="${item.cantidad_bruta}"
-                          data-neta="${item.cantidad_neta}"
-                          data-retencion="${item.retencion}"
-                          data-empresa="${item.nombre_empresa}"
-                        >✏️</button>
-                        <button class="delete-factura" data-id="${item.id}">🗑️</button>
-                     </td>`;
+                    <button class="edit-factura" 
+                      data-id="${item.id}"
+                      data-fecha="${item.fecha}"
+                      data-bruta="${item.cantidad_bruta}"
+                      data-neta="${item.cantidad_neta}"
+                      data-retencion="${item.retencion}"
+                      data-empresa="${item.nombre_empresa}"
+                    >✏️</button>
+                    <button class="delete-factura" data-id="${item.id}">🗑️</button>
+                   </td>`;
             html += "</tr>";
             totalBruto += parseFloat(item.cantidad_bruta) || 0;
             totalNeto += parseFloat(item.cantidad_neta) || 0;
@@ -583,10 +567,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.open(url, '_blank');
   });
 
-  // =====================================================
-  // Sección: Gastos Varios
-  // =====================================================
-  // Nota: Se declara "gastosForm" y se capturan los elementos relevantes.
+  // ----- Gastos Varios -----
   const gastosForm = document.getElementById('gastos-form');
   const gastoTipoSelect = document.getElementById('gasto-tipo');
   const gastoTotalInput = document.getElementById('gasto-total');
@@ -596,35 +577,27 @@ document.addEventListener('DOMContentLoaded', function() {
   const gastoCurrentId = document.getElementById('gasto-current-id');
   const gastoSubmitBtn = document.getElementById('gasto-submit-btn');
   const gastoCancelBtn = document.getElementById('gasto-cancel-btn');
-  const dividirDeduccionCheckbox = document.getElementById('dividir-deduccion');
-  // NUEVO: Checkbox para repetir el gasto 4 veces con fecha incrementada
-  const repetirGastoCheckbox = document.getElementById('gasto-repetir-cuatro');
 
+  // Función para establecer un porcentaje por defecto según el tipo de gasto.
   function setDefaultPercentage() {
     const tipo = gastoTipoSelect.value;
     let defaultPercentage = 100;
-    switch(tipo) {
-      case "Terminal móvil":
-        defaultPercentage = 50;
-        break;
-      case "Electricidad":
-        defaultPercentage = 33;
-        break;
-      case "Internet":
-        defaultPercentage = 26.16;
-        break;
-      case "Seguro coche":
-      case "Gasolina":
-        defaultPercentage = 40;
-        break;
-      case "IBI vivienda":
-      case "Comunidad de vecinos":
-        defaultPercentage = 33;
-        break;
-      case "ChatGPT Plus":
-      default:
-        defaultPercentage = 100;
-        break;
+    if (tipo === "Terminal móvil") {
+      defaultPercentage = 50;
+    } else if (tipo === "ChatGPT Plus") {
+      defaultPercentage = 100;
+    } else if (tipo === "Electricidad") {
+      defaultPercentage = 33;
+    } else if (tipo === "Internet") {
+      defaultPercentage = 26.16;
+    } else if (tipo === "Seguro coche") {
+      defaultPercentage = 40;
+    } else if (tipo === "Gasolina") {
+      defaultPercentage = 40;
+    } else if (tipo === "IBI vivienda") {
+      defaultPercentage = 33;
+    } else if (tipo === "Comunidad de vecinos") {
+      defaultPercentage = 33;
     }
     gastoPorcentajeInput.value = defaultPercentage;
   }
@@ -644,84 +617,45 @@ document.addEventListener('DOMContentLoaded', function() {
     updateGastoDeducible();
   });
 
+  // Actualiza el valor del "Importe Deducible" según el total y el porcentaje.
   function updateGastoDeducible() {
     const total = parseFloat(gastoTotalInput.value) || 0;
     const porcentaje = parseFloat(gastoPorcentajeInput.value) || 0;
     const overallDeduction = total * (porcentaje / 100);
-    
-    // Si se selecciona repetir, se divide por 4 (tal como se espera en cada entrada)
-    if (repetirGastoCheckbox.checked) {
-      gastoDeducibleInput.value = (overallDeduction / 4).toFixed(2);
-    } else if (total > 300 && dividirDeduccionCheckbox.checked) {
-      gastoDeducibleInput.value = (overallDeduction / 4).toFixed(2);
-    } else {
-      gastoDeducibleInput.value = overallDeduction.toFixed(2);
-    }
+    gastoDeducibleInput.value = overallDeduction.toFixed(2);
   }
 
   gastoTotalInput.addEventListener('input', updateGastoDeducible);
   gastoPorcentajeInput.addEventListener('input', updateGastoDeducible);
-  dividirDeduccionCheckbox.addEventListener('change', updateGastoDeducible);
-  repetirGastoCheckbox.addEventListener('change', updateGastoDeducible);
 
-  gastosForm.addEventListener('submit', async function(e) {
+  // Evento submit del formulario de gastos (se ejecuta una sola vez)
+  gastosForm.addEventListener('submit', function(e) {
     e.preventDefault();
+    // Creamos el objeto FormData a partir del formulario.
     const formData = new FormData(gastosForm);
     formData.set('gasto_compartido', gastoCheckbox.checked ? '1' : '0');
-    formData.set('dividir_deduccion', dividirDeduccionCheckbox.checked ? '1' : '0');
 
-    // Si se selecciona el checkbox de repetir gasto (crear 4 entradas consecutivas)
-    if (repetirGastoCheckbox.checked) {
-      let originalDateStr = document.getElementById('gasto-fecha').value;
-      let originalDate = new Date(originalDateStr);
-      let responses = [];
-      for (let i = 0; i < 4; i++) {
-        let newDate = new Date(originalDate);
-        newDate.setFullYear(newDate.getFullYear() + i);
-        let newDateStr = newDate.toISOString().substring(0, 10);
-        let formDataClone = new FormData(gastosForm);
-        formDataClone.set('fecha', newDateStr);
-        // Cada entrada tendrá el "importe deducible" ya calculado (de ser necesario dividido entre 4)
-        const response = await fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
-          method: 'POST',
-          body: formDataClone
+    fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => { 
+          throw new Error(err.error || 'Error al agregar gasto'); 
         });
-        if (!response.ok) {
-          const errorData = await response.json();
-          alert("Error al agregar gasto: " + (errorData.error || ''));
-          return;
-        }
-        const data = await response.json();
-        responses.push(data);
       }
-      alert("Gastos agregados exitosamente. IDs: " + responses.map(r => r.id).join(', '));
+      return response.json();
+    })
+    .then(data => {
+      alert("Gasto agregado exitosamente. ID: " + data.id);
       gastosForm.reset();
       setDefaultPercentage();
       gastoDeducibleInput.value = "";
-    } else {
-      // Llamada única (sin repetir)
-      fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => {
-        if (!response.ok) {
-          return response.json().then(err => { 
-            throw new Error(err.error || 'Error al agregar gasto'); 
-          });
-        }
-        return response.json();
-      })
-      .then(data => {
-        alert("Gasto agregado exitosamente. ID: " + data.id);
-        gastosForm.reset();
-        setDefaultPercentage();
-        gastoDeducibleInput.value = "";
-      })
-      .catch(error => {
-        alert("Error: " + error.message);
-      });
-    }
+    })
+    .catch(error => {
+      alert("Error: " + error.message);
+    });
   });
 
   gastoCancelBtn.addEventListener('click', function() {
@@ -765,18 +699,18 @@ document.addEventListener('DOMContentLoaded', function() {
             html += `<td>${item.nota || ''}</td>`;
             html += `<td>${item.gasto_compartido == 1 ? 'Sí' : 'No'}</td>`;
             html += `<td>
-                        <button class="edit-gasto" 
-                          data-id="${item.id}"
-                          data-fecha="${item.fecha}"
-                          data-tipo="${item.tipo}"
-                          data-importe_total="${item.importe_total}"
-                          data-porcentaje_deducible="${item.porcentaje_deducible}"
-                          data-importe_deducible="${item.importe_deducible}"
-                          data-nota="${item.nota}"
-                          data-gasto_compartido="${item.gasto_compartido}"
-                        >✏️</button>
-                        <button class="delete-gasto" data-id="${item.id}">🗑️</button>
-                     </td>`;
+              <button class="edit-gasto" 
+                data-id="${item.id}"
+                data-fecha="${item.fecha}"
+                data-tipo="${item.tipo}"
+                data-importe_total="${item.importe_total}"
+                data-porcentaje_deducible="${item.porcentaje_deducible}"
+                data-importe_deducible="${item.importe_deducible}"
+                data-nota="${item.nota}"
+                data-gasto_compartido="${item.gasto_compartido}"
+                >✏️</button>
+              <button class="delete-gasto" data-id="${item.id}">🗑️</button>
+              </td>`;
             html += "</tr>";
             totalGastos += parseFloat(item.importe_total) || 0;
           });
@@ -800,11 +734,9 @@ document.addEventListener('DOMContentLoaded', function() {
     window.open(url, '_blank');
   });
 
-  // =====================================================
-  // Delegación de Eventos para Edición y Eliminación
-  // =====================================================
+  // ----- Delegación de eventos para botones de editar y eliminar -----
   document.addEventListener('click', function(e) {
-    // Desplazamientos
+    // Para desplazamientos
     if (e.target.classList.contains('delete-desp')) {
       const id = e.target.getAttribute('data-id');
       if (confirm("¿Está seguro de eliminar este desplazamiento?")) {
@@ -839,7 +771,7 @@ document.addEventListener('DOMContentLoaded', function() {
       window.scrollTo(0, 0);
     }
 
-    // Gastos
+    // Para gastos
     if (e.target.classList.contains('delete-gasto')) {
       const id = e.target.getAttribute('data-id');
       if (confirm("¿Está seguro de eliminar este gasto?")) {
@@ -872,7 +804,7 @@ document.addEventListener('DOMContentLoaded', function() {
       gastoCancelBtn.style.display = "inline-block";
       window.scrollTo(0, document.body.scrollHeight);
     }
-    // Tickets
+    // Para Tickets
     if (e.target.classList.contains('delete-ticket')) {
       const id = e.target.getAttribute('data-id');
       if (confirm("¿Está seguro de eliminar este ticket?")) {
@@ -901,7 +833,7 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('ticket-submit-btn').textContent = "Actualizar Ticket";
       ticketCancelBtn.style.display = "inline-block";
     }
-    // Facturas
+    // Para Facturas
     if (e.target.classList.contains('delete-factura')) {
       const id = e.target.getAttribute('data-id');
       if (confirm("¿Está seguro de eliminar esta factura?")) {
@@ -933,9 +865,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // =====================================================
-  // Registro de Service Worker
-  // =====================================================
+  // ----- Registro de Service Worker -----
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
