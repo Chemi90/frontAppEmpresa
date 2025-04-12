@@ -23,10 +23,11 @@
       <button class="tab-button" data-target="tickets">Tickets de Comida</button>
       <button class="tab-button" data-target="facturas">Facturas</button>
       <button class="tab-button" data-target="gastos">Gastos Varios</button>
+      <button class="tab-button" data-target="nominas">Nóminas</button>
     </nav>
 
     <!-- Sección: Desplazamientos -->
-    <section id="desplazamientos" class="tab-content" style="display:none;">
+    <section id="desplazamientos" class="tab-content" style="display:block;">
       <h2>Desplazamientos</h2>
       <form id="desplazamientos-form">
         <!-- Campo oculto para saber si se está editando -->
@@ -170,7 +171,7 @@
     </section>
     
     <!-- Sección: Gastos Varios -->
-    <section id="gastos" class="tab-content" style="display:block;">
+    <section id="gastos" class="tab-content" style="display:none;">
       <h2>Gastos Varios</h2>
       <form id="gastos-form">
          <!-- Campo oculto para distinguir edición -->
@@ -235,65 +236,63 @@
          <button id="gastos-export-btn">Generar Excel</button>
       </div>
     </section>
+    
+    <!-- Sección: Nóminas -->
+    <section id="nominas" class="tab-content" style="display:none;">
+      <h2>Nóminas</h2>
+      <form id="nominas-form" enctype="multipart/form-data">
+        <!-- Campo oculto para saber si se está editando -->
+        <input type="hidden" id="nomina-current-id" name="id" value="">
+        
+        <label for="nomina-empresa">Empresa:</label>
+        <input type="text" id="nomina-empresa" name="empresa">
+        
+        <label for="nomina-cif">CIF:</label>
+        <input type="text" id="nomina-cif" name="cif">
+        
+        <label for="nomina-fecha-contrato">Fecha del Contrato:</label>
+        <input type="date" id="nomina-fecha-contrato" name="fecha_contrato">
+        
+        <label for="nomina-categoria">Categoría:</label>
+        <input type="text" id="nomina-categoria" name="categoria">
+        
+        <label for="nomina-total-devengo">Total Devengo (€):</label>
+        <input type="number" step="0.01" id="nomina-total-devengo" name="total_devengo">
+        
+        <label for="nomina-liquido">Líquido a Percibir (€):</label>
+        <input type="number" step="0.01" id="nomina-liquido" name="liquido_percibir">
+        
+        <label for="nomina-total-deducciones">Total Deducciones (€):</label>
+        <input type="number" step="0.01" id="nomina-total-deducciones" name="total_deducciones">
+        
+        <label for="nomina-documento">Documento (PDF o imagen):</label>
+        <input type="file" id="nomina-documento" name="documento" accept=".pdf, image/*">
+        
+        <!-- Botón para autorrellenar campos con IA -->
+        <button type="button" id="nomina-autofill-btn">Autorrellenar</button>
+        
+        <button type="submit" id="nomina-submit-btn">Agregar Nómina</button>
+        <button type="button" id="nomina-cancel-btn" style="display:none;">Cancelar</button>
+      </form>
+      
+      <div id="nominas-filter">
+        <h3>Filtrar por Fecha de Contrato</h3>
+        <label for="nominas-filter-start">Desde:</label>
+        <input type="date" id="nominas-filter-start">
+        <label for="nominas-filter-end">Hasta:</label>
+        <input type="date" id="nominas-filter-end">
+        <button id="nominas-filter-btn">Filtrar</button>
+      </div>
+      
+      <div id="nominas-results"></div>
+      
+      <div id="nominas-summary">
+        <h3>Total Nóminas</h3>
+        <button id="nominas-export-btn">Generar Excel</button>
+      </div>
+    </section>
+    
   </div>
-  
-  <!-- Agregar en el menú de navegación -->
-<button class="tab-button" data-target="nominas">Nóminas</button>
-
-<!-- Sección de Nóminas -->
-<section id="nominas" class="tab-content" style="display:none;">
-  <h2>Nóminas</h2>
-  <form id="nominas-form" enctype="multipart/form-data">
-    <!-- Campo oculto para saber si se está editando -->
-    <input type="hidden" id="nomina-current-id" name="id" value="">
-    
-    <label for="nomina-empresa">Empresa:</label>
-    <input type="text" id="nomina-empresa" name="empresa">
-    
-    <label for="nomina-cif">CIF:</label>
-    <input type="text" id="nomina-cif" name="cif">
-    
-    <label for="nomina-fecha-contrato">Fecha del Contrato:</label>
-    <input type="date" id="nomina-fecha-contrato" name="fecha_contrato">
-    
-    <label for="nomina-categoria">Categoría:</label>
-    <input type="text" id="nomina-categoria" name="categoria">
-    
-    <label for="nomina-total-devengo">Total Devengo (€):</label>
-    <input type="number" step="0.01" id="nomina-total-devengo" name="total_devengo">
-    
-    <label for="nomina-liquido">Líquido a Percibir (€):</label>
-    <input type="number" step="0.01" id="nomina-liquido" name="liquido_percibir">
-    
-    <label for="nomina-total-deducciones">Total Deducciones (€):</label>
-    <input type="number" step="0.01" id="nomina-total-deducciones" name="total_deducciones">
-    
-    <label for="nomina-documento">Documento (PDF o imagen):</label>
-    <input type="file" id="nomina-documento" name="documento" accept=".pdf, image/*">
-    
-    <!-- Botón para autorrellenar campos con IA -->
-    <button type="button" id="nomina-autofill-btn">Autorrellenar</button>
-    
-    <button type="submit" id="nomina-submit-btn">Agregar Nómina</button>
-    <button type="button" id="nomina-cancel-btn" style="display:none;">Cancelar</button>
-  </form>
-  
-  <div id="nominas-filter">
-    <h3>Filtrar por Fecha de Contrato</h3>
-    <label for="nominas-filter-start">Desde:</label>
-    <input type="date" id="nominas-filter-start">
-    <label for="nominas-filter-end">Hasta:</label>
-    <input type="date" id="nominas-filter-end">
-    <button id="nominas-filter-btn">Filtrar</button>
-  </div>
-  
-  <div id="nominas-results"></div>
-  
-  <div id="nominas-summary">
-    <h3>Total Nóminas</h3>
-    <button id="nominas-export-btn">Generar Excel</button>
-  </div>
-</section>
 
   <script src="script.js"></script>
 </body>

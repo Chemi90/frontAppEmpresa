@@ -76,7 +76,6 @@ document.addEventListener('DOMContentLoaded', function() {
       gasto: document.getElementById('desp-gasto').value
     };
 
-    // Si hay un ID se actualiza; de lo contrario se agrega
     if (despCurrentId.value) {
       fetch(`https://josemiguelruizguevara.com:5000/api/desplazamientos/${despCurrentId.value}`, {
         method: 'PUT',
@@ -172,7 +171,6 @@ document.addEventListener('DOMContentLoaded', function() {
             row.insertCell().textContent = item.deduccion;
             row.insertCell().textContent = item.gasto;
             total += parseFloat(item.gasto) || 0;
-            // Botones de editar y eliminar
             const actionsCell = row.insertCell();
             actionsCell.innerHTML = `<button class="edit-desp" 
               data-id="${item.id}"
@@ -210,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // ----- Tickets de Comida -----
   const ticketsForm = document.getElementById('tickets-form');
   const ticketAutofillBtn = document.getElementById('ticket-autofill-btn');
-  const ticketCancelBtn = document.getElementById('ticket-cancel-btn'); // Botón cancelar para Tickets
+  const ticketCancelBtn = document.getElementById('ticket-cancel-btn');
   if (ticketAutofillBtn) {
     ticketAutofillBtn.addEventListener('click', function() {
       const formData = new FormData();
@@ -252,7 +250,6 @@ document.addEventListener('DOMContentLoaded', function() {
   ticketsForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const ticketCurrentId = document.getElementById('ticket-current-id').value;
-    // Si existe el ID, se actualiza; de lo contrario se agrega
     if (ticketCurrentId) {
       const data = {
         localizacion: document.getElementById('ticket-localizacion').value,
@@ -385,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // ----- Facturas -----
   const facturaAutofillBtn = document.getElementById('factura-autofill-btn');
-  const facturaCancelBtn = document.getElementById('factura-cancel-btn'); // Botón cancelar para Facturas
+  const facturaCancelBtn = document.getElementById('factura-cancel-btn');
   if (facturaAutofillBtn) {
     facturaAutofillBtn.addEventListener('click', function() {
       const formData = new FormData();
@@ -469,7 +466,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (archivoInput.files.length > 0) {
         formData.append('archivo', archivoInput.files[0]);
       }
-
       fetch('https://josemiguelruizguevara.com:5000/api/facturas', {
         method: 'POST',
         body: formData
@@ -577,13 +573,10 @@ document.addEventListener('DOMContentLoaded', function() {
   const gastoCurrentId = document.getElementById('gasto-current-id');
   const gastoSubmitBtn = document.getElementById('gasto-submit-btn');
   const gastoCancelBtn = document.getElementById('gasto-cancel-btn');
-
-  // Nuevos elementos para dividir el deducible en 4 años
   const dividirCheckbox = document.getElementById('gasto-dividir');
   const dividirInfo = document.getElementById('dividir-info');
   const dividirImporteInput = document.getElementById('gasto-dividir-importe');
 
-  // Función para establecer un porcentaje por defecto según el tipo de gasto.
   function setDefaultPercentage() {
     const tipo = gastoTipoSelect.value;
     let defaultPercentage = 100;
@@ -622,13 +615,11 @@ document.addEventListener('DOMContentLoaded', function() {
     updateGastoDeducible();
   });
 
-  // Actualiza el valor del "Importe Deducible" según el total y el porcentaje.
   function updateGastoDeducible() {
     const total = parseFloat(gastoTotalInput.value) || 0;
     const porcentaje = parseFloat(gastoPorcentajeInput.value) || 0;
     const overallDeduction = total * (porcentaje / 100);
     gastoDeducibleInput.value = overallDeduction.toFixed(2);
-    // Si el checkbox de dividir está marcado, actualizar el importe dividido
     if (dividirCheckbox.checked) {
       dividirImporteInput.value = (overallDeduction / 4).toFixed(2);
     }
@@ -636,7 +627,6 @@ document.addEventListener('DOMContentLoaded', function() {
   gastoTotalInput.addEventListener('input', updateGastoDeducible);
   gastoPorcentajeInput.addEventListener('input', updateGastoDeducible);
 
-  // Maneja el comportamiento de mostrar/ocultar el textbox de división
   dividirCheckbox.addEventListener('change', function() {
     if(dividirCheckbox.checked) {
       dividirInfo.style.display = "block";
@@ -647,14 +637,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Evento submit del formulario de gastos (se ejecuta una sola vez)
   gastosForm.addEventListener('submit', function(e) {
     e.preventDefault();
-    // Si el checkbox de dividir en 4 años NO está marcado, se usa el flujo tradicional
     if (!dividirCheckbox.checked) {
       const formData = new FormData(gastosForm);
       formData.set('gasto_compartido', gastoCheckbox.checked ? '1' : '0');
-
       fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
         method: 'POST',
         body: formData
@@ -679,7 +666,6 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
-    // Si el checkbox de dividir está marcado, se crea un registro para la fecha seleccionada y otros 3 para los siguientes años
     let fechaOriginal = document.getElementById('gasto-fecha').value;
     if (!fechaOriginal) {
       alert("Por favor, seleccione una fecha.");
@@ -687,25 +673,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     let deducibleTotal = parseFloat(gastoDeducibleInput.value) || 0;
     let importePorCuota = (deducibleTotal / 4).toFixed(2);
-    
-    // Crear un array de fechas: fecha original + 0, 1, 2 y 3 años
     let dates = [];
-    let parts = fechaOriginal.split('-'); // [año, mes, día]
+    let parts = fechaOriginal.split('-');
     for (let i = 0; i < 4; i++) {
       let newYear = parseInt(parts[0]) + i;
       let newFecha = `${newYear}-${parts[1]}-${parts[2]}`;
       dates.push(newFecha);
     }
     
-    // Enviar 4 llamadas al endpoint
     let promises = [];
     for (let i = 0; i < 4; i++) {
       let fd = new FormData(gastosForm);
-      // Actualizar la fecha y el importe deducible para cada cuota
       fd.set('fecha', dates[i]);
       fd.set('importe_deducible', importePorCuota);
       fd.set('gasto_compartido', gastoCheckbox.checked ? '1' : '0');
-      
       let promise = fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
         method: 'POST',
         body: fd
@@ -810,349 +791,216 @@ document.addEventListener('DOMContentLoaded', function() {
     window.open(url, '_blank');
   });
 
-  // ----- Delegación de eventos para botones de editar y eliminar -----
-  document.addEventListener('click', function(e) {
-    // Para desplazamientos
-    if (e.target.classList.contains('delete-desp')) {
-      const id = e.target.getAttribute('data-id');
-      if (confirm("¿Está seguro de eliminar este desplazamiento?")) {
-        fetch(`https://josemiguelruizguevara.com:5000/api/desplazamientos/${id}`, {
-          method: 'DELETE'
-        })
-        .then(response => {
-          if (!response.ok) throw new Error('Error al eliminar desplazamiento');
-          return response.json();
-        })
-        .then(data => {
-          alert("Desplazamiento eliminado.");
-          e.target.parentElement.parentElement.remove();
-        })
-        .catch(error => {
-          alert("Error: " + error.message);
-        });
-      }
-    }
-    if (e.target.classList.contains('edit-desp')) {
-      despCurrentId.value = e.target.getAttribute('data-id');
-      document.getElementById('desp-fecha').value = e.target.getAttribute('data-fecha');
-      document.getElementById('desp-destino').value = e.target.getAttribute('data-destino');
-      document.getElementById('desp-km').value = e.target.getAttribute('data-distancia');
-      document.getElementById('desp-descripcion').value = e.target.getAttribute('data-descripcion');
-      document.getElementById('desp-dia').value = e.target.getAttribute('data-dia');
-      document.getElementById('desp-cliente').value = e.target.getAttribute('data-cliente');
-      document.getElementById('desp-deduccion').value = e.target.getAttribute('data-deduccion');
-      document.getElementById('desp-gasto').value = e.target.getAttribute('data-gasto');
-      despSubmitBtn.textContent = "Actualizar Desplazamiento";
-      despCancelBtn.style.display = "inline-block";
-      window.scrollTo(0, 0);
-    }
+  // ----- Nóminas -----
+  const nominaForm = document.getElementById('nominas-form');
+  const nominaAutofillBtn = document.getElementById('nomina-autofill-btn');
+  const nominaCancelBtn = document.getElementById('nomina-cancel-btn');
 
-    // Para gastos
-    if (e.target.classList.contains('delete-gasto')) {
-      const id = e.target.getAttribute('data-id');
-      if (confirm("¿Está seguro de eliminar este gasto?")) {
-        fetch(`https://josemiguelruizguevara.com:5000/api/gastos/${id}`, {
-          method: 'DELETE'
-        })
-        .then(response => {
-          if (!response.ok) throw new Error('Error al eliminar gasto');
-          return response.json();
-        })
-        .then(data => {
-          alert("Gasto eliminado.");
-          e.target.parentElement.parentElement.remove();
-        })
-        .catch(error => {
-          alert("Error: " + error.message);
-        });
-      }
-    }
-    if (e.target.classList.contains('edit-gasto')) {
-      gastoCurrentId.value = e.target.getAttribute('data-id');
-      document.getElementById('gasto-fecha').value = e.target.getAttribute('data-fecha');
-      document.getElementById('gasto-tipo').value = e.target.getAttribute('data-tipo');
-      document.getElementById('gasto-total').value = e.target.getAttribute('data-importe_total');
-      document.getElementById('gasto-porcentaje').value = e.target.getAttribute('data-porcentaje_deducible');
-      document.getElementById('gasto-deducible').value = e.target.getAttribute('data-importe_deducible');
-      document.getElementById('gasto-nota').value = e.target.getAttribute('data-nota');
-      document.getElementById('gasto-compartido').checked = (e.target.getAttribute('data-gasto_compartido') == 1);
-      gastoSubmitBtn.textContent = "Actualizar Gasto";
-      gastoCancelBtn.style.display = "inline-block";
-      window.scrollTo(0, document.body.scrollHeight);
-    }
-    // Para Tickets
-    if (e.target.classList.contains('delete-ticket')) {
-      const id = e.target.getAttribute('data-id');
-      if (confirm("¿Está seguro de eliminar este ticket?")) {
-        fetch(`https://josemiguelruizguevara.com:5000/api/tickets/${id}`, {
-          method: 'DELETE'
-        })
-        .then(response => {
-          if (!response.ok) throw new Error('Error al eliminar ticket');
-          return response.json();
-        })
-        .then(data => {
-          alert("Ticket eliminado.");
-          e.target.parentElement.parentElement.remove();
-        })
-        .catch(error => {
-          alert("Error: " + error.message);
-        });
-      }
-    }
-    if (e.target.classList.contains('edit-ticket')) {
-      document.getElementById('ticket-localizacion').value = e.target.getAttribute('data-localizacion');
-      document.getElementById('ticket-dinero').value = parseFloat(e.target.getAttribute('data-dinero')).toFixed(2);
-      document.getElementById('ticket-motivo').value = e.target.getAttribute('data-motivo');
-      document.getElementById('ticket-fecha').value = e.target.getAttribute('data-fecha');
-      document.getElementById('ticket-current-id').value = e.target.getAttribute('data-id');
-      document.getElementById('ticket-submit-btn').textContent = "Actualizar Ticket";
-      ticketCancelBtn.style.display = "inline-block";
-    }
-    // Para Facturas
-    if (e.target.classList.contains('delete-factura')) {
-      const id = e.target.getAttribute('data-id');
-      if (confirm("¿Está seguro de eliminar esta factura?")) {
-        fetch(`https://josemiguelruizguevara.com:5000/api/facturas/${id}`, {
-          method: 'DELETE'
-        })
-        .then(response => {
-          if (!response.ok) throw new Error('Error al eliminar factura');
-          return response.json();
-        })
-        .then(data => {
-          alert("Factura eliminada.");
-          e.target.parentElement.parentElement.remove();
-        })
-        .catch(error => {
-          alert("Error: " + error.message);
-        });
-      }
-    }
-    if (e.target.classList.contains('edit-factura')) {
-      document.getElementById('factura-fecha').value = e.target.getAttribute('data-fecha');
-      document.getElementById('factura-bruta').value = parseFloat(e.target.getAttribute('data-bruta')).toFixed(2);
-      document.getElementById('factura-neta').value = parseFloat(e.target.getAttribute('data-neta')).toFixed(2);
-      document.getElementById('factura-retencion').value = parseFloat(e.target.getAttribute('data-retencion')).toFixed(2);
-      document.getElementById('factura-empresa').value = e.target.getAttribute('data-empresa');
-      document.getElementById('factura-current-id').value = e.target.getAttribute('data-id');
-      document.getElementById('factura-submit-btn').textContent = "Actualizar Factura";
-      facturaCancelBtn.style.display = "inline-block";
-    }
-  });
-
-// --- Nóminas ---
-const nominaForm = document.getElementById('nominas-form');
-const nominaAutofillBtn = document.getElementById('nomina-autofill-btn');
-const nominaCancelBtn = document.getElementById('nomina-cancel-btn');
-
-if(nominaAutofillBtn) {
-  nominaAutofillBtn.addEventListener('click', function() {
-    const formData = new FormData();
-    const documentoInput = document.getElementById('nomina-documento');
-    if (documentoInput.files.length > 0) {
-      formData.append('documento', documentoInput.files[0]);
-    } else {
-      alert("Por favor, selecciona un archivo para autorrellenar.");
-      return;
-    }
-    fetch('https://josemiguelruizguevara.com:5000/api/nominas/autofill', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-      if(data.empresa)
-        document.getElementById('nomina-empresa').value = data.empresa;
-      if(data.cif)
-        document.getElementById('nomina-cif').value = data.cif;
-      if(data.fecha_contrato) {
-        const parts = data.fecha_contrato.split('/');
-        if (parts.length === 3) {
-          const isoDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-          document.getElementById('nomina-fecha-contrato').value = isoDate;
-        } else {
-          document.getElementById('nomina-fecha-contrato').value = data.fecha_contrato;
-        }
-      }
-      if(data.categoria)
-        document.getElementById('nomina-categoria').value = data.categoria;
-      if(data.total_devengo)
-        document.getElementById('nomina-total-devengo').value = parseFloat(data.total_devengo).toFixed(2);
-      if(data.liquido_percibir)
-        document.getElementById('nomina-liquido').value = parseFloat(data.liquido_percibir).toFixed(2);
-      if(data.total_deducciones)
-        document.getElementById('nomina-total-deducciones').value = parseFloat(data.total_deducciones).toFixed(2);
-    })
-    .catch(error => {
-      alert("Error en autofill de nómina: " + error.message);
-    });
-  });
-}
-
-nominaForm.addEventListener('submit', function(e) {
-  e.preventDefault();
-  const nominaCurrentId = document.getElementById('nomina-current-id').value;
-  if (nominaCurrentId) {
-    // Actualizar nómina
-    const data = {
-      empresa: document.getElementById('nomina-empresa').value,
-      cif: document.getElementById('nomina-cif').value,
-      fecha_contrato: document.getElementById('nomina-fecha-contrato').value,
-      categoria: document.getElementById('nomina-categoria').value,
-      total_devengo: document.getElementById('nomina-total-devengo').value,
-      liquido_percibir: document.getElementById('nomina-liquido').value,
-      total_deducciones: document.getElementById('nomina-total-deducciones').value
-    };
-    fetch(`https://josemiguelruizguevara.com:5000/api/nominas/${nominaCurrentId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    })
-    .then(response => {
-      if (!response.ok) throw new Error('Error al actualizar nómina');
-      return response.json();
-    })
-    .then(data => {
-      alert("Nómina actualizada exitosamente.");
-      nominaForm.reset();
-      document.getElementById('nomina-submit-btn').textContent = "Agregar Nómina";
-      document.getElementById('nomina-current-id').value = "";
-      nominaCancelBtn.style.display = "none";
-    })
-    .catch(error => {
-      alert("Error: " + error.message);
-    });
-  } else {
-    // Insertar nueva nómina
-    const formData = new FormData(nominaForm);
-    fetch('https://josemiguelruizguevara.com:5000/api/nominas', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(err => { 
-          throw new Error(err.error || "Error al agregar nómina"); 
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      alert("Nómina agregada exitosamente. ID: " + data.id);
-      nominaForm.reset();
-    })
-    .catch(error => {
-      alert("Error: " + error.message);
-    });
-  }
-});
-
-nominaCancelBtn.addEventListener('click', function() {
-  nominaForm.reset();
-  document.getElementById('nomina-current-id').value = "";
-  document.getElementById('nomina-submit-btn').textContent = "Agregar Nómina";
-  nominaCancelBtn.style.display = "none";
-});
-
-document.getElementById('nominas-filter-btn').addEventListener('click', function() {
-  const startDate = document.getElementById('nominas-filter-start').value;
-  const endDate = document.getElementById('nominas-filter-end').value;
-  if (!startDate || !endDate) {
-    alert("Por favor, seleccione ambas fechas de filtro.");
-    return;
-  }
-  fetch(`https://josemiguelruizguevara.com:5000/api/nominas?start=${startDate}&end=${endDate}`)
-    .then(response => response.json())
-    .then(data => {
-      let html = "";
-      if (data.length === 0) {
-        html = "<p>No se encontraron nóminas en esas fechas.</p>";
+  if(nominaAutofillBtn) {
+    nominaAutofillBtn.addEventListener('click', function() {
+      const formData = new FormData();
+      const documentoInput = document.getElementById('nomina-documento');
+      if (documentoInput.files.length > 0) {
+        formData.append('documento', documentoInput.files[0]);
       } else {
-        html += "<table border='1' style='width:100%;'><thead><tr>";
-        const cols = ["ID", "Empresa", "CIF", "Fecha Contrato", "Categoría", "Total Devengo", "Líquido a Percibir", "Total Deducciones", "Acciones"];
-        cols.forEach(col => {
-          html += `<th>${col}</th>`;
-        });
-        html += "</tr></thead><tbody>";
-        data.forEach(item => {
-          html += "<tr>";
-          html += `<td>${item.id}</td>`;
-          html += `<td>${item.empresa}</td>`;
-          html += `<td>${item.cif}</td>`;
-          html += `<td>${item.fecha_contrato}</td>`;
-          html += `<td>${item.categoria}</td>`;
-          html += `<td>${item.total_devengo}</td>`;
-          html += `<td>${item.liquido_percibir}</td>`;
-          html += `<td>${item.total_deducciones}</td>`;
-          html += `<td>
-                      <button class="edit-nomina" 
-                        data-id="${item.id}"
-                        data-empresa="${item.empresa}"
-                        data-cif="${item.cif}"
-                        data-fecha_contrato="${item.fecha_contrato}"
-                        data-categoria="${item.categoria}"
-                        data-total_devengo="${item.total_devengo}"
-                        data-liquido_percibir="${item.liquido_percibir}"
-                        data-total_deducciones="${item.total_deducciones}"
-                      >✏️</button>
-                      <button class="delete-nomina" data-id="${item.id}">🗑️</button>
-                   </td>`;
-          html += "</tr>";
-        });
-        html += "</tbody></table>";
+        alert("Por favor, selecciona un archivo para autorrellenar.");
+        return;
       }
-      document.getElementById('nominas-results').innerHTML = html;
-    })
-    .catch(error => {
-      alert("Error al filtrar nóminas: " + error.message);
+      fetch('https://josemiguelruizguevara.com:5000/api/nominas/autofill', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.empresa)
+          document.getElementById('nomina-empresa').value = data.empresa;
+        if(data.cif)
+          document.getElementById('nomina-cif').value = data.cif;
+        if(data.fecha_contrato) {
+          const parts = data.fecha_contrato.split('/');
+          if (parts.length === 3) {
+            const isoDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            document.getElementById('nomina-fecha-contrato').value = isoDate;
+          } else {
+            document.getElementById('nomina-fecha-contrato').value = data.fecha_contrato;
+          }
+        }
+        if(data.categoria)
+          document.getElementById('nomina-categoria').value = data.categoria;
+        if(data.total_devengo)
+          document.getElementById('nomina-total-devengo').value = parseFloat(data.total_devengo).toFixed(2);
+        if(data.liquido_percibir)
+          document.getElementById('nomina-liquido').value = parseFloat(data.liquido_percibir).toFixed(2);
+        if(data.total_deducciones)
+          document.getElementById('nomina-total-deducciones').value = parseFloat(data.total_deducciones).toFixed(2);
+      })
+      .catch(error => {
+        alert("Error en autofill de nómina: " + error.message);
+      });
     });
-});
-
-document.getElementById('nominas-export-btn').addEventListener('click', function() {
-  const startDate = document.getElementById('nominas-filter-start').value;
-  const endDate = document.getElementById('nominas-filter-end').value;
-  let url = 'https://josemiguelruizguevara.com:5000/api/nominas/export';
-  if (startDate && endDate) {
-    url += `?start=${startDate}&end=${endDate}`;
   }
-  window.open(url, '_blank');
-});
 
-// Delegación de eventos para botones de editar y eliminar en nóminas
-document.addEventListener('click', function(e) {
-  if (e.target.classList.contains('delete-nomina')) {
-    const id = e.target.getAttribute('data-id');
-    if (confirm("¿Está seguro de eliminar esta nómina?")) {
-      fetch(`https://josemiguelruizguevara.com:5000/api/nominas/${id}`, {
-        method: 'DELETE'
+  nominaForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const nominaCurrentId = document.getElementById('nomina-current-id').value;
+    if (nominaCurrentId) {
+      const data = {
+        empresa: document.getElementById('nomina-empresa').value,
+        cif: document.getElementById('nomina-cif').value,
+        fecha_contrato: document.getElementById('nomina-fecha-contrato').value,
+        categoria: document.getElementById('nomina-categoria').value,
+        total_devengo: document.getElementById('nomina-total-devengo').value,
+        liquido_percibir: document.getElementById('nomina-liquido').value,
+        total_deducciones: document.getElementById('nomina-total-deducciones').value
+      };
+      fetch(`https://josemiguelruizguevara.com:5000/api/nominas/${nominaCurrentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
       })
       .then(response => {
-        if (!response.ok) throw new Error('Error al eliminar nómina');
+        if (!response.ok) throw new Error('Error al actualizar nómina');
         return response.json();
       })
       .then(data => {
-        alert("Nómina eliminada.");
-        e.target.parentElement.parentElement.remove();
+        alert("Nómina actualizada exitosamente.");
+        nominaForm.reset();
+        document.getElementById('nomina-submit-btn').textContent = "Agregar Nómina";
+        document.getElementById('nomina-current-id').value = "";
+        nominaCancelBtn.style.display = "none";
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+      });
+    } else {
+      const formData = new FormData(nominaForm);
+      fetch('https://josemiguelruizguevara.com:5000/api/nominas', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => { 
+            throw new Error(err.error || "Error al agregar nómina"); 
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert("Nómina agregada exitosamente. ID: " + data.id);
+        nominaForm.reset();
       })
       .catch(error => {
         alert("Error: " + error.message);
       });
     }
-  }
-  if (e.target.classList.contains('edit-nomina')) {
-    document.getElementById('nomina-current-id').value = e.target.getAttribute('data-id');
-    document.getElementById('nomina-empresa').value = e.target.getAttribute('data-empresa');
-    document.getElementById('nomina-cif').value = e.target.getAttribute('data-cif');
-    document.getElementById('nomina-fecha-contrato').value = e.target.getAttribute('data-fecha_contrato');
-    document.getElementById('nomina-categoria').value = e.target.getAttribute('data-categoria');
-    document.getElementById('nomina-total-devengo').value = parseFloat(e.target.getAttribute('data-total_devengo')).toFixed(2);
-    document.getElementById('nomina-liquido').value = parseFloat(e.target.getAttribute('data-liquido_percibir')).toFixed(2);
-    document.getElementById('nomina-total-deducciones').value = parseFloat(e.target.getAttribute('data-total_deducciones')).toFixed(2);
-    document.getElementById('nomina-submit-btn').textContent = "Actualizar Nómina";
-    nominaCancelBtn.style.display = "inline-block";
-  }
-});
+  });
+
+  nominaCancelBtn.addEventListener('click', function() {
+    nominaForm.reset();
+    document.getElementById('nomina-current-id').value = "";
+    document.getElementById('nomina-submit-btn').textContent = "Agregar Nómina";
+    nominaCancelBtn.style.display = "none";
+  });
+
+  document.getElementById('nominas-filter-btn').addEventListener('click', function() {
+    const startDate = document.getElementById('nominas-filter-start').value;
+    const endDate = document.getElementById('nominas-filter-end').value;
+    if (!startDate || !endDate) {
+      alert("Por favor, seleccione ambas fechas de filtro.");
+      return;
+    }
+    fetch(`https://josemiguelruizguevara.com:5000/api/nominas?start=${startDate}&end=${endDate}`)
+      .then(response => response.json())
+      .then(data => {
+        let html = "";
+        if (data.length === 0) {
+          html = "<p>No se encontraron nóminas en esas fechas.</p>";
+        } else {
+          html += "<table border='1' style='width:100%;'><thead><tr>";
+          const cols = ["ID", "Empresa", "CIF", "Fecha Contrato", "Categoría", "Total Devengo", "Líquido a Percibir", "Total Deducciones", "Acciones"];
+          cols.forEach(col => {
+            html += `<th>${col}</th>`;
+          });
+          html += "</tr></thead><tbody>";
+          data.forEach(item => {
+            html += "<tr>";
+            html += `<td>${item.id}</td>`;
+            html += `<td>${item.empresa}</td>`;
+            html += `<td>${item.cif}</td>`;
+            html += `<td>${item.fecha_contrato}</td>`;
+            html += `<td>${item.categoria}</td>`;
+            html += `<td>${item.total_devengo}</td>`;
+            html += `<td>${item.liquido_percibir}</td>`;
+            html += `<td>${item.total_deducciones}</td>`;
+            html += `<td>
+                        <button class="edit-nomina" 
+                          data-id="${item.id}"
+                          data-empresa="${item.empresa}"
+                          data-cif="${item.cif}"
+                          data-fecha_contrato="${item.fecha_contrato}"
+                          data-categoria="${item.categoria}"
+                          data-total_devengo="${item.total_devengo}"
+                          data-liquido_percibir="${item.liquido_percibir}"
+                          data-total_deducciones="${item.total_deducciones}"
+                        >✏️</button>
+                        <button class="delete-nomina" data-id="${item.id}">🗑️</button>
+                     </td>`;
+            html += "</tr>";
+          });
+          html += "</tbody></table>";
+        }
+        document.getElementById('nominas-results').innerHTML = html;
+      })
+      .catch(error => {
+        alert("Error al filtrar nóminas: " + error.message);
+      });
+  });
+
+  document.getElementById('nominas-export-btn').addEventListener('click', function() {
+    const startDate = document.getElementById('nominas-filter-start').value;
+    const endDate = document.getElementById('nominas-filter-end').value;
+    let url = 'https://josemiguelruizguevara.com:5000/api/nominas/export';
+    if (startDate && endDate) {
+      url += `?start=${startDate}&end=${endDate}`;
+    }
+    window.open(url, '_blank');
+  });
+
+  // Delegación de eventos para botones de editar y eliminar en nóminas
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('delete-nomina')) {
+      const id = e.target.getAttribute('data-id');
+      if (confirm("¿Está seguro de eliminar esta nómina?")) {
+        fetch(`https://josemiguelruizguevara.com:5000/api/nominas/${id}`, {
+          method: 'DELETE'
+        })
+        .then(response => {
+          if (!response.ok) throw new Error('Error al eliminar nómina');
+          return response.json();
+        })
+        .then(data => {
+          alert("Nómina eliminada.");
+          e.target.parentElement.parentElement.remove();
+        })
+        .catch(error => {
+          alert("Error: " + error.message);
+        });
+      }
+    }
+    if (e.target.classList.contains('edit-nomina')) {
+      document.getElementById('nomina-current-id').value = e.target.getAttribute('data-id');
+      document.getElementById('nomina-empresa').value = e.target.getAttribute('data-empresa');
+      document.getElementById('nomina-cif').value = e.target.getAttribute('data-cif');
+      document.getElementById('nomina-fecha-contrato').value = e.target.getAttribute('data-fecha_contrato');
+      document.getElementById('nomina-categoria').value = e.target.getAttribute('data-categoria');
+      document.getElementById('nomina-total-devengo').value = parseFloat(e.target.getAttribute('data-total_devengo')).toFixed(2);
+      document.getElementById('nomina-liquido').value = parseFloat(e.target.getAttribute('data-liquido_percibir')).toFixed(2);
+      document.getElementById('nomina-total-deducciones').value = parseFloat(e.target.getAttribute('data-total_deducciones')).toFixed(2);
+      document.getElementById('nomina-submit-btn').textContent = "Actualizar Nómina";
+      nominaCancelBtn.style.display = "inline-block";
+    }
+  });
 
   // ----- Registro de Service Worker -----
   if ('serviceWorker' in navigator) {
