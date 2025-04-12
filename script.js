@@ -941,6 +941,219 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+// --- Nóminas ---
+const nominaForm = document.getElementById('nominas-form');
+const nominaAutofillBtn = document.getElementById('nomina-autofill-btn');
+const nominaCancelBtn = document.getElementById('nomina-cancel-btn');
+
+if(nominaAutofillBtn) {
+  nominaAutofillBtn.addEventListener('click', function() {
+    const formData = new FormData();
+    const documentoInput = document.getElementById('nomina-documento');
+    if (documentoInput.files.length > 0) {
+      formData.append('documento', documentoInput.files[0]);
+    } else {
+      alert("Por favor, selecciona un archivo para autorrellenar.");
+      return;
+    }
+    fetch('https://josemiguelruizguevara.com:5000/api/nominas/autofill', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if(data.empresa)
+        document.getElementById('nomina-empresa').value = data.empresa;
+      if(data.cif)
+        document.getElementById('nomina-cif').value = data.cif;
+      if(data.fecha_contrato) {
+        const parts = data.fecha_contrato.split('/');
+        if (parts.length === 3) {
+          const isoDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+          document.getElementById('nomina-fecha-contrato').value = isoDate;
+        } else {
+          document.getElementById('nomina-fecha-contrato').value = data.fecha_contrato;
+        }
+      }
+      if(data.categoria)
+        document.getElementById('nomina-categoria').value = data.categoria;
+      if(data.total_devengo)
+        document.getElementById('nomina-total-devengo').value = parseFloat(data.total_devengo).toFixed(2);
+      if(data.liquido_percibir)
+        document.getElementById('nomina-liquido').value = parseFloat(data.liquido_percibir).toFixed(2);
+      if(data.total_deducciones)
+        document.getElementById('nomina-total-deducciones').value = parseFloat(data.total_deducciones).toFixed(2);
+    })
+    .catch(error => {
+      alert("Error en autofill de nómina: " + error.message);
+    });
+  });
+}
+
+nominaForm.addEventListener('submit', function(e) {
+  e.preventDefault();
+  const nominaCurrentId = document.getElementById('nomina-current-id').value;
+  if (nominaCurrentId) {
+    // Actualizar nómina
+    const data = {
+      empresa: document.getElementById('nomina-empresa').value,
+      cif: document.getElementById('nomina-cif').value,
+      fecha_contrato: document.getElementById('nomina-fecha-contrato').value,
+      categoria: document.getElementById('nomina-categoria').value,
+      total_devengo: document.getElementById('nomina-total-devengo').value,
+      liquido_percibir: document.getElementById('nomina-liquido').value,
+      total_deducciones: document.getElementById('nomina-total-deducciones').value
+    };
+    fetch(`https://josemiguelruizguevara.com:5000/api/nominas/${nominaCurrentId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Error al actualizar nómina');
+      return response.json();
+    })
+    .then(data => {
+      alert("Nómina actualizada exitosamente.");
+      nominaForm.reset();
+      document.getElementById('nomina-submit-btn').textContent = "Agregar Nómina";
+      document.getElementById('nomina-current-id').value = "";
+      nominaCancelBtn.style.display = "none";
+    })
+    .catch(error => {
+      alert("Error: " + error.message);
+    });
+  } else {
+    // Insertar nueva nómina
+    const formData = new FormData(nominaForm);
+    fetch('https://josemiguelruizguevara.com:5000/api/nominas', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(err => { 
+          throw new Error(err.error || "Error al agregar nómina"); 
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      alert("Nómina agregada exitosamente. ID: " + data.id);
+      nominaForm.reset();
+    })
+    .catch(error => {
+      alert("Error: " + error.message);
+    });
+  }
+});
+
+nominaCancelBtn.addEventListener('click', function() {
+  nominaForm.reset();
+  document.getElementById('nomina-current-id').value = "";
+  document.getElementById('nomina-submit-btn').textContent = "Agregar Nómina";
+  nominaCancelBtn.style.display = "none";
+});
+
+document.getElementById('nominas-filter-btn').addEventListener('click', function() {
+  const startDate = document.getElementById('nominas-filter-start').value;
+  const endDate = document.getElementById('nominas-filter-end').value;
+  if (!startDate || !endDate) {
+    alert("Por favor, seleccione ambas fechas de filtro.");
+    return;
+  }
+  fetch(`https://josemiguelruizguevara.com:5000/api/nominas?start=${startDate}&end=${endDate}`)
+    .then(response => response.json())
+    .then(data => {
+      let html = "";
+      if (data.length === 0) {
+        html = "<p>No se encontraron nóminas en esas fechas.</p>";
+      } else {
+        html += "<table border='1' style='width:100%;'><thead><tr>";
+        const cols = ["ID", "Empresa", "CIF", "Fecha Contrato", "Categoría", "Total Devengo", "Líquido a Percibir", "Total Deducciones", "Acciones"];
+        cols.forEach(col => {
+          html += `<th>${col}</th>`;
+        });
+        html += "</tr></thead><tbody>";
+        data.forEach(item => {
+          html += "<tr>";
+          html += `<td>${item.id}</td>`;
+          html += `<td>${item.empresa}</td>`;
+          html += `<td>${item.cif}</td>`;
+          html += `<td>${item.fecha_contrato}</td>`;
+          html += `<td>${item.categoria}</td>`;
+          html += `<td>${item.total_devengo}</td>`;
+          html += `<td>${item.liquido_percibir}</td>`;
+          html += `<td>${item.total_deducciones}</td>`;
+          html += `<td>
+                      <button class="edit-nomina" 
+                        data-id="${item.id}"
+                        data-empresa="${item.empresa}"
+                        data-cif="${item.cif}"
+                        data-fecha_contrato="${item.fecha_contrato}"
+                        data-categoria="${item.categoria}"
+                        data-total_devengo="${item.total_devengo}"
+                        data-liquido_percibir="${item.liquido_percibir}"
+                        data-total_deducciones="${item.total_deducciones}"
+                      >✏️</button>
+                      <button class="delete-nomina" data-id="${item.id}">🗑️</button>
+                   </td>`;
+          html += "</tr>";
+        });
+        html += "</tbody></table>";
+      }
+      document.getElementById('nominas-results').innerHTML = html;
+    })
+    .catch(error => {
+      alert("Error al filtrar nóminas: " + error.message);
+    });
+});
+
+document.getElementById('nominas-export-btn').addEventListener('click', function() {
+  const startDate = document.getElementById('nominas-filter-start').value;
+  const endDate = document.getElementById('nominas-filter-end').value;
+  let url = 'https://josemiguelruizguevara.com:5000/api/nominas/export';
+  if (startDate && endDate) {
+    url += `?start=${startDate}&end=${endDate}`;
+  }
+  window.open(url, '_blank');
+});
+
+// Delegación de eventos para botones de editar y eliminar en nóminas
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('delete-nomina')) {
+    const id = e.target.getAttribute('data-id');
+    if (confirm("¿Está seguro de eliminar esta nómina?")) {
+      fetch(`https://josemiguelruizguevara.com:5000/api/nominas/${id}`, {
+        method: 'DELETE'
+      })
+      .then(response => {
+        if (!response.ok) throw new Error('Error al eliminar nómina');
+        return response.json();
+      })
+      .then(data => {
+        alert("Nómina eliminada.");
+        e.target.parentElement.parentElement.remove();
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+      });
+    }
+  }
+  if (e.target.classList.contains('edit-nomina')) {
+    document.getElementById('nomina-current-id').value = e.target.getAttribute('data-id');
+    document.getElementById('nomina-empresa').value = e.target.getAttribute('data-empresa');
+    document.getElementById('nomina-cif').value = e.target.getAttribute('data-cif');
+    document.getElementById('nomina-fecha-contrato').value = e.target.getAttribute('data-fecha_contrato');
+    document.getElementById('nomina-categoria').value = e.target.getAttribute('data-categoria');
+    document.getElementById('nomina-total-devengo').value = parseFloat(e.target.getAttribute('data-total_devengo')).toFixed(2);
+    document.getElementById('nomina-liquido').value = parseFloat(e.target.getAttribute('data-liquido_percibir')).toFixed(2);
+    document.getElementById('nomina-total-deducciones').value = parseFloat(e.target.getAttribute('data-total_deducciones')).toFixed(2);
+    document.getElementById('nomina-submit-btn').textContent = "Actualizar Nómina";
+    nominaCancelBtn.style.display = "inline-block";
+  }
+});
+
   // ----- Registro de Service Worker -----
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
