@@ -578,6 +578,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const gastoSubmitBtn = document.getElementById('gasto-submit-btn');
   const gastoCancelBtn = document.getElementById('gasto-cancel-btn');
 
+  // Nuevos elementos para dividir el deducible en 4 años
+  const dividirCheckbox = document.getElementById('gasto-dividir');
+  const dividirInfo = document.getElementById('dividir-info');
+  const dividirImporteInput = document.getElementById('gasto-dividir-importe');
+
   // Función para establecer un porcentaje por defecto según el tipo de gasto.
   function setDefaultPercentage() {
     const tipo = gastoTipoSelect.value;
@@ -623,35 +628,106 @@ document.addEventListener('DOMContentLoaded', function() {
     const porcentaje = parseFloat(gastoPorcentajeInput.value) || 0;
     const overallDeduction = total * (porcentaje / 100);
     gastoDeducibleInput.value = overallDeduction.toFixed(2);
+    // Si el checkbox de dividir está marcado, actualizar el importe dividido
+    if (dividirCheckbox.checked) {
+      dividirImporteInput.value = (overallDeduction / 4).toFixed(2);
+    }
   }
-
   gastoTotalInput.addEventListener('input', updateGastoDeducible);
   gastoPorcentajeInput.addEventListener('input', updateGastoDeducible);
+
+  // Maneja el comportamiento de mostrar/ocultar el textbox de división
+  dividirCheckbox.addEventListener('change', function() {
+    if(dividirCheckbox.checked) {
+      dividirInfo.style.display = "block";
+      const overallDeduction = parseFloat(gastoDeducibleInput.value) || 0;
+      dividirImporteInput.value = (overallDeduction / 4).toFixed(2);
+    } else {
+      dividirInfo.style.display = "none";
+    }
+  });
 
   // Evento submit del formulario de gastos (se ejecuta una sola vez)
   gastosForm.addEventListener('submit', function(e) {
     e.preventDefault();
-    // Creamos el objeto FormData a partir del formulario.
-    const formData = new FormData(gastosForm);
-    formData.set('gasto_compartido', gastoCheckbox.checked ? '1' : '0');
+    // Si el checkbox de dividir en 4 años NO está marcado, se usa el flujo tradicional
+    if (!dividirCheckbox.checked) {
+      const formData = new FormData(gastosForm);
+      formData.set('gasto_compartido', gastoCheckbox.checked ? '1' : '0');
 
-    fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.json().then(err => { 
-          throw new Error(err.error || 'Error al agregar gasto'); 
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      alert("Gasto agregado exitosamente. ID: " + data.id);
+      fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => { 
+            throw new Error(err.error || 'Error al agregar gasto'); 
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert("Gasto agregado exitosamente. ID: " + data.id);
+        gastosForm.reset();
+        setDefaultPercentage();
+        gastoDeducibleInput.value = "";
+      })
+      .catch(error => {
+        alert("Error: " + error.message);
+      });
+      return;
+    }
+    
+    // Si el checkbox de dividir está marcado, se crea un registro para la fecha seleccionada y otros 3 para los siguientes años
+    let fechaOriginal = document.getElementById('gasto-fecha').value;
+    if (!fechaOriginal) {
+      alert("Por favor, seleccione una fecha.");
+      return;
+    }
+    let deducibleTotal = parseFloat(gastoDeducibleInput.value) || 0;
+    let importePorCuota = (deducibleTotal / 4).toFixed(2);
+    
+    // Crear un array de fechas: fecha original + 0, 1, 2 y 3 años
+    let dates = [];
+    let parts = fechaOriginal.split('-'); // [año, mes, día]
+    for (let i = 0; i < 4; i++) {
+      let newYear = parseInt(parts[0]) + i;
+      let newFecha = `${newYear}-${parts[1]}-${parts[2]}`;
+      dates.push(newFecha);
+    }
+    
+    // Enviar 4 llamadas al endpoint
+    let promises = [];
+    for (let i = 0; i < 4; i++) {
+      let fd = new FormData(gastosForm);
+      // Actualizar la fecha y el importe deducible para cada cuota
+      fd.set('fecha', dates[i]);
+      fd.set('importe_deducible', importePorCuota);
+      fd.set('gasto_compartido', gastoCheckbox.checked ? '1' : '0');
+      
+      let promise = fetch('https://josemiguelruizguevara.com:5000/api/gastos', {
+        method: 'POST',
+        body: fd
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => { 
+            throw new Error(err.error || 'Error al agregar gasto'); 
+          });
+        }
+        return response.json();
+      });
+      promises.push(promise);
+    }
+    
+    Promise.all(promises)
+    .then(results => {
+      alert("Gasto agregado exitosamente en 4 años.");
       gastosForm.reset();
       setDefaultPercentage();
       gastoDeducibleInput.value = "";
+      dividirInfo.style.display = "none";
     })
     .catch(error => {
       alert("Error: " + error.message);

@@ -204,6 +204,14 @@
          <label for="gasto-deducible">Importe Deducible (€):</label>
          <input type="number" step="0.01" id="gasto-deducible" name="importe_deducible" readonly>
 
+         <!-- Nuevos controles para dividir el deducible en 4 años -->
+         <label for="gasto-dividir">Dividir en 4 años:</label>
+         <input type="checkbox" id="gasto-dividir" name="dividir_cuatro">
+         <div id="dividir-info" style="display:none;">
+           <label for="gasto-dividir-importe">Importe por año (€):</label>
+           <input type="number" step="0.01" id="gasto-dividir-importe" name="dividir_importe" readonly>
+         </div>
+
          <label for="gasto-nota">Justificación/Nota:</label>
          <textarea id="gasto-nota" name="nota"></textarea>
 
