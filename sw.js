@@ -5,26 +5,24 @@ const ASSETS = [
   '/',
   '/index.html',
   '/css/main.css',
-  '/js/api.js',
   '/js/login.js',
-  '/js/tabs.js'
+  '/partials/login.html'
 ];
 
-self.addEventListener('install', event => {
-  event.waitUntil(
+self.addEventListener('install', e => {
+  e.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(ASSETS))
       .then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener('activate', event => {
-  event.waitUntil(
+self.addEventListener('activate', e => {
+  e.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
+        keys.filter(key => key !== CACHE_NAME)
+            .map(key => caches.delete(key))
       )
     ).then(() => self.clients.claim())
   );
@@ -34,21 +32,13 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // 1) NO interceptar nada que NO sea GET
-  if (request.method !== 'GET') {
-    return;
-  }
+  // Solo interceptamos GET de assets estáticos
+  if (request.method !== 'GET') return;
+  if (url.pathname.startsWith('/api/')) return;
 
-  // 2) NO cachear llamadas a la API
-  if (url.pathname.startsWith('/api/') || request.url.includes('/api/')) {
-    return;
-  }
-
-  // 3) Para el resto, intentar servir de cache, y si no existe, pedir a red y cachearlo
   event.respondWith(
     caches.match(request).then(cached => {
-      if (cached) return cached;
-      return fetch(request).then(networkRes => {
+      return cached || fetch(request).then(networkRes => {
         return caches.open(CACHE_NAME).then(cache => {
           cache.put(request, networkRes.clone());
           return networkRes;

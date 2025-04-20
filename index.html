@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Ingresos y Gastos</title>
   <link rel="stylesheet" href="css/main.css">
-  <script type="module" src="js/api.js" defer></script>
-  <script type="module" src="js/tabs.js" defer></script>
 </head>
 <body>
-  <div id="app"><!-- login o dashboard --></div>
+  <div id="app"><!-- Aquí inyectamos login o dashboard --></div>
 
   <script type="module">
     import { initLogin } from './js/login.js';
+    // Arrancamos el flujo de login
     document.addEventListener('DOMContentLoaded', () => initLogin('#app'));
   </script>
 </body>
