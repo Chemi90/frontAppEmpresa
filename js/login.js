@@ -1,3 +1,10 @@
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(regs =>
+      regs.forEach(r => r.unregister())
+    );
+  }
+  
+
 import{post}from'./api.js';
 export async function initLogin(selector){
   const c=document.querySelector(selector);
