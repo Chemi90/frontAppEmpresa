@@ -1,11 +1,32 @@
-/* Asegura que el login esté por encima y reciba eventos */
+/* css/login.css */
+
+/* Estilos originales */
 #login-screen {
-    position: relative;
-    z-index: 999;
-    pointer-events: auto;
+    max-width: 300px;
+    margin: 2rem auto;
   }
+  
   #login-screen input,
   #login-screen button {
-    pointer-events: auto;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+  }
+  
+  /* --------------------------------------------------------- */
+  /* Reglas forzadas para evitar overlays o bloqueos de eventos */
+  /* --------------------------------------------------------- */
+  html,
+  body,
+  #app,
+  #login-screen {
+    position: relative !important;
+    z-index:      9999       !important;
+    pointer-events: auto     !important;
+  }
+  
+  #login-screen input,
+  #login-screen button {
+    pointer-events: auto     !important;
   }
   
