@@ -1,0 +1,24 @@
+<section id="tickets" class="tab-content">
+    <h2>Tickets de Comida</h2>
+    <form id="tickets-form">
+      <input type="hidden" id="ticket-current-id" name="id" value="">
+      <label>Foto:<input type="file" id="ticket-foto" name="foto" accept="image/*"></label>
+      <label>Localización:<input type="text" id="ticket-localizacion" name="localizacion"></label>
+      <label>Dinero (€):<input type="number" step="0.01" id="ticket-dinero" name="dinero"></label>
+      <label>Motivo:<input type="text" id="ticket-motivo" name="motivo"></label>
+      <label>Fecha:<input type="date" id="ticket-fecha" name="fecha"></label>
+      <button type="button" id="ticket-autofill-btn">Autorrellenar</button>
+      <button type="submit" id="ticket-submit-btn">Agregar Ticket</button>
+      <button type="button" id="ticket-cancel-btn">Cancelar</button>
+    </form>
+    <div id="ticket-filter">
+      <label>Desde:<input type="date" id="ticket-filter-start"></label>
+      <label>Hasta:<input type="date" id="ticket-filter-end"></label>
+      <button id="ticket-filter-btn">Filtrar</button>
+    </div>
+    <div id="ticket-results"></div>
+    <div id="ticket-summary">
+      <span>Total: <span id="ticket-total">0.00</span> €</span>
+      <button id="ticket-export-btn">Exportar Excel</button>
+    </div>
+  </section>

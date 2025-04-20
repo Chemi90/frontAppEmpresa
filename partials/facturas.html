@@ -1,0 +1,26 @@
+<section id="facturas" class="tab-content">
+    <h2>Facturas</h2>
+    <form id="facturas-form">
+      <input type="hidden" id="factura-current-id" name="id" value="">
+      <label>Fecha:<input type="date" id="factura-fecha" name="fecha"></label>
+      <label>Bruta (€):<input type="number" step="0.01" id="factura-bruta" name="bruta"></label>
+      <label>Neta (€):<input type="number" step="0.01" id="factura-neta" name="neta"></label>
+      <label>Retención (%):<input type="number" step="0.01" id="factura-retencion" name="retencion"></label>
+      <label>Empresa:<input type="text" id="factura-empresa" name="empresa"></label>
+      <label>Archivo:<input type="file" id="factura-archivo" name="archivo" accept=".pdf,image/*"></label>
+      <button type="button" id="factura-autofill-btn">Autorrellenar</button>
+      <button type="submit" id="factura-submit-btn">Agregar Factura</button>
+      <button type="button" id="factura-cancel-btn">Cancelar</button>
+    </form>
+    <div id="factura-filter">
+      <label>Desde:<input type="date" id="factura-filter-start"></label>
+      <label>Hasta:<input type="date" id="factura-filter-end"></label>
+      <button id="factura-filter-btn">Filtrar</button>
+    </div>
+    <div id="factura-results"></div>
+    <div id="factura-summary">
+      <span>Bruto: <span id="factura-total-bruto">0.00</span> €</span>
+      <span>Neto: <span id="factura-total-neto">0.00</span> €</span>
+      <button id="factura-export-btn">Exportar Excel</button>
+    </div>
+  </section>

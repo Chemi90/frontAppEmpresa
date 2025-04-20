@@ -1,0 +1,11 @@
+@import "login.css";
+@import "nav.css";
+@import "desplazamientos.css";
+@import "tickets.css";
+@import "facturas.css";
+@import "gastos.css";
+@import "nominas.css";
+
+body { font-family: Arial, sans-serif; margin:0; padding:0; }
+.error { color:red; }
+.tab-content { display:none; padding:1rem; }
