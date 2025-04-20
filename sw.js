@@ -1,49 +1,52 @@
+// sw.js
 const CACHE_NAME = 'app-v1';
 const ASSETS = [
-  '/', '/index.html',
+  '/',
+  '/index.html',
   '/css/main.css',
-  '/js/api.js', '/js/login.js', '/js/tabs.js'
+  '/js/api.js',
+  '/js/login.js',
+  '/js/tabs.js'
 ];
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
-  self.skipWaiting();
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(ASSETS))
+      .then(() => self.skipWaiting())
+  );
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
+self.addEventListener('activate', event => {
+  event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys
-        .filter(key => key !== CACHE_NAME)
-        .map(key => caches.delete(key))
+      Promise.all(
+        keys
+          .filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
       )
-    )
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // 1) Dejar pasar TODO lo que NO sea GET
-  if (request.method !== 'GET') {
-    return;
-  }
+  // 1) Solo interceptar GET
+  if (request.method !== 'GET') return;
 
-  // 2) Dejar pasar las peticiones a tu API (cualquier ruta que incluya /api/)
-  if (url.pathname.startsWith('/api/') || request.url.includes('/api/')) {
-    return;
-  }
+  // 2) No cachear llamadas a la API
+  if (url.pathname.startsWith('/api/') || request.url.includes('/api/')) return;
 
-  // 3) Solo cachear GET de assets
+  // 3) Interceptar sólo assets estáticos
   event.respondWith(
     caches.match(request).then(cached => {
-      return cached || fetch(request).then(resp => {
-        // opcional: cachear nuevas respuestas
+      if (cached) return cached;
+      return fetch(request).then(networkRes => {
         return caches.open(CACHE_NAME).then(cache => {
-          cache.put(request, resp.clone());
-          return resp;
+          cache.put(request, networkRes.clone());
+          return networkRes;
         });
       });
     })
