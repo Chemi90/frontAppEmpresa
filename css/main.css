@@ -1,3 +1,6 @@
+/* css/main.css */
+
+/* Imports de estilos específicos */
 @import "login.css";
 @import "nav.css";
 @import "desplazamientos.css";
@@ -6,6 +9,23 @@
 @import "gastos.css";
 @import "nominas.css";
 
-body { font-family: Arial, sans-serif; margin:0; padding:0; }
-.error { color:red; }
-.tab-content { display:none; padding:1rem; }
+/* Reset y utilidades */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+.error {
+  color: red;
+}
+
+/* Antes teníamos .tab-content oculto; ahora lo mostramos */
+.tab-content {
+  display: block;   /* <- se cambia de none a block */
+  padding: 1rem;
+}
+
+/* Opcional: dar margen al main */
+#main-sections {
+  margin-top: 1rem;
+}
