@@ -1,4 +1,7 @@
-/* js/tickets.js */
+/* js/tickets.js
+ * Gestión de Tickets de comida con cálculo de IVA, filtrado,
+ * exportación y CRUD completo.
+ */
 import { api } from './api.js';
 
 let
@@ -7,7 +10,7 @@ let
   $loc, $mot, $fecha, $file;
 
 export function init() {
-  /* nodos */
+  /* ---------- nodos ---------- */
   $form  = document.getElementById('tickets-form');
   $id    = document.getElementById('ticket-current-id');
   $sub   = document.getElementById('ticket-submit-btn');
@@ -23,18 +26,18 @@ export function init() {
   $fecha = document.getElementById('ticket-fecha');
   $file  = document.getElementById('ticket-foto');
 
-  /* cálculo IVA */
+  /* ---------- cálculo IVA ---------- */
   const calcIVA = () => {
     const pct = +$pct.value || 0, b = +$bruto.value || 0;
-    const base = (b / (1 + pct/100)).toFixed(2);
+    const base = (b / (1 + pct / 100)).toFixed(2);
     const imp  = (b - base).toFixed(2);
     $neto.value   = base;
     $impIVA.value = imp;
   };
   [$pct, $bruto].forEach(el => el.addEventListener('input', calcIVA));
-  calcIVA();
+  calcIVA();          // inicial
 
-  /* eventos generales */
+  /* ---------- eventos ---------- */
   $form .addEventListener('submit', onSubmit);
   $can  .addEventListener('click', reset);
 
@@ -48,13 +51,13 @@ export function init() {
   document.addEventListener('click', delegate);
 }
 
-/* -------- autofill IA (sin cambios de IVA) -------- */
+/* ---------- Autofill IA ---------- */
 async function autofill() {
   if (!$file.files.length) { alert('Selecciona una imagen PDF/JPG'); return; }
   const fd = new FormData();
   fd.append('foto', $file.files[0]);
   try {
-    const res = await api('/tickets/autofill', { method:'POST', body: fd });
+    const res = await api('/tickets/autofill', { method: 'POST', body: fd });
     if (res.localizacion) $loc.value = res.localizacion;
     if (res.motivo)       $mot.value = res.motivo;
     if (res.dinero)       $bruto.value = (+res.dinero).toFixed(2);
@@ -63,11 +66,10 @@ async function autofill() {
   } catch (err) { alert(err.message); }
 }
 
-/* -------- submit (alta / edición) -------- */
+/* ---------- Alta / Edición ---------- */
 async function onSubmit(e) {
   e.preventDefault();
 
-  /* validaciones mínimas */
   if (!$fecha.value || !$bruto.value) {
     alert('Fecha e importe son obligatorios'); return;
   }
@@ -81,30 +83,30 @@ async function onSubmit(e) {
   fd.append('importe_bruto',  $bruto.value);
 
   try {
-    if ($id.value) {                     // UPDATE (PUT JSON)
+    if ($id.value) {       /* -------- PUT (JSON) -------- */
       const json = {
-        localizacion  : $loc.value,
-        motivo        : $mot.value,
-        fecha         : $fecha.value,
-        iva_porcentaje: $pct.value,
-        importe_bruto : $bruto.value
+        localizacion   : $loc.value,
+        motivo         : $mot.value,
+        fecha          : $fecha.value,
+        iva_porcentaje : $pct.value,
+        importe_bruto  : $bruto.value
       };
       await api(`/tickets/${$id.value}`, {
-        method:'PUT',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(json)
+        method : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify(json)
       });
       alert('Ticket actualizado');
-    } else {                            // CREATE (POST multipart)
-      await api('/tickets', { method:'POST', body: fd });
+    } else {               /* -------- POST (multipart) -------- */
+      await api('/tickets', { method: 'POST', body: fd });
       alert('Ticket agregado');
     }
     reset();
-    onFilter();
+    onFilter();            // refresca tabla
   } catch (err) { alert(err.message); }
 }
 
-/* -------- reset formulario -------- */
+/* ---------- reset ---------- */
 function reset() {
   $form.reset();
   $id.value = '';
@@ -113,7 +115,7 @@ function reset() {
   $neto.value = $impIVA.value = '';
 }
 
-/* -------- filtro / render -------- */
+/* ---------- filtro ---------- */
 async function onFilter() {
   const s = document.getElementById('ticket-filter-start').value,
         e = document.getElementById('ticket-filter-end').value;
@@ -124,6 +126,7 @@ async function onFilter() {
   } catch (err) { alert(err.message); }
 }
 
+/* ---------- render tabla ---------- */
 function render(rows) {
   const $r = document.getElementById('ticket-results');
   if (!rows.length) {
@@ -161,13 +164,13 @@ function render(rows) {
   document.getElementById('ticket-total').textContent = total;
 }
 
-/* -------- editar / borrar -------- */
+/* ---------- editar / borrar ---------- */
 function delegate(e) {
   /* borrar */
   if (e.target.matches('.delete-ticket')) {
     const id = e.target.dataset.id;
     if (!confirm('¿Eliminar ticket?')) return;
-    api(`/tickets/${id}`, { method:'DELETE' })
+    api(`/tickets/${id}`, { method: 'DELETE' })
       .then(() => e.target.closest('tr').remove())
       .catch(err => alert(err.message));
   }
@@ -176,14 +179,14 @@ function delegate(e) {
   if (e.target.matches('.edit-ticket')) {
     const t = JSON.parse(e.target.dataset.row);
 
-    $id.value   = t.id;
-    $loc.value  = t.localizacion;
-    $mot.value  = t.motivo;
-    $fecha.value= t.fecha.split(' ')[0];
+    $id.value       = t.id;
+    $loc.value      = t.localizacion;
+    $mot.value      = t.motivo;
+    $fecha.value    = t.fecha.split(' ')[0];
 
     /* bruto = base + IVA */
-    $bruto.value= (+t.dinero + +t.iva_importe).toFixed(2);
-    $pct.value  = t.iva_porcentaje;
+    $bruto.value    = (+t.dinero + +t.iva_importe).toFixed(2);
+    $pct.value      = t.iva_porcentaje;
 
     calcIVA();
     $sub.textContent = 'Actualizar Ticket';
@@ -191,7 +194,7 @@ function delegate(e) {
   }
 }
 
-/* -------- export -------- */
+/* ---------- export ---------- */
 function exportExcel() {
   const s = document.getElementById('ticket-filter-start').value,
         e = document.getElementById('ticket-filter-end').value;
