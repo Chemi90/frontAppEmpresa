@@ -95,8 +95,10 @@ function delegate(e){
 }
 
 /* ---- exportar PDF ---- */
-function exportPDF(){
-  const s=flt('start'),e=flt('end');
-  const q=(s&&e)?`?start=${s}&end=${e}&format=pdf`:'?format=pdf';
-  window.open(`/api/desplazamientos/export${q}`,'_blank');
-}
+function exportPDF() {
+    const s = document.getElementById('desplazamientos-filter-start').value,
+          e = document.getElementById('desplazamientos-filter-end').value;
+    const q = (s && e) ? `?start=${s}&end=${e}&format=pdf` : '?format=pdf';
+    window.open(`${API_BASE}/desplazamientos/export${q}`, '_blank');
+  }
+  

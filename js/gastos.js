@@ -217,8 +217,9 @@ function delegate(e) {
 
 /* ---------- exportar PDF ---------- */
 function exportPDF() {
-  const s = document.getElementById('gastos-filter-start').value,
-        e = document.getElementById('gastos-filter-end').value;
-  const q = (s && e) ? `?start=${s}&end=${e}&format=pdf` : '?format=pdf';
-  window.open(`/api/gastos/export${q}`, '_blank');
-}
+    const s = document.getElementById('gastos-filter-start').value,
+          e = document.getElementById('gastos-filter-end').value;
+    const q = (s && e) ? `?start=${s}&end=${e}&format=pdf` : '?format=pdf';
+    window.open(`${API_BASE}/gastos/export${q}`, '_blank');
+  }
+  

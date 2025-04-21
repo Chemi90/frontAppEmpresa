@@ -120,8 +120,10 @@ function delegate(e){
 }
 
 /* ---------- exportar PDF ---------- */
-function exportPDF(){
-  const s=$('nominas-filter-start').value, e=$('nominas-filter-end').value;
-  const q=(s&&e)?`?start=${s}&end=${e}&format=pdf`:'?format=pdf';
-  window.open(`/api/nominas/export${q}`,'_blank');
-}
+function exportPDF() {
+    const s = document.getElementById('nominas-filter-start').value,
+          e = document.getElementById('nominas-filter-end').value;
+    const q = (s && e) ? `?start=${s}&end=${e}&format=pdf` : '?format=pdf';
+    window.open(`${API_BASE}/nominas/export${q}`, '_blank');
+  }
+  

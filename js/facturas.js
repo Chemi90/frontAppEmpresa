@@ -89,8 +89,10 @@ function delegate(e){
 }
 
 /* ---- exportar PDF ---- */
-function exportPDF(){
-  const s=flt('start'),e=flt('end');
-  const q=(s&&e)?`?start=${s}&end=${e}&format=pdf`:'?format=pdf';
-  window.open(`/api/facturas/export${q}`,'_blank');
-}
+function exportPDF() {
+    const s = document.getElementById('facturas-filter-start').value,
+          e = document.getElementById('facturas-filter-end').value;
+    const q = (s && e) ? `?start=${s}&end=${e}&format=pdf` : '?format=pdf';
+    window.open(`${API_BASE}/facturas/export${q}`, '_blank');
+  }
+  
