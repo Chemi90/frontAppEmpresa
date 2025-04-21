@@ -7,7 +7,7 @@ let
   $loc,$mot,$fecha,$file;
 
 export function init(){
-  // nodos
+  /* nodos */
   $form  = $('#tickets-form');
   $id    = $('#ticket-current-id');
   $sub   = $('#ticket-submit-btn');
@@ -23,19 +23,19 @@ export function init(){
   $fecha = $('#ticket-fecha');
   $file  = $('#ticket-foto');
 
-  // cálculo IVA
+  /* cálculo IVA */
   const calc=()=>{
-    const p=+$pct.value||0, b=+$bruto.value||0;
+    const p=+$pct.value||0,b=+$bruto.value||0;
     const base=(b/(1+p/100)).toFixed(2), iva=(b-base).toFixed(2);
     $neto.value=base; $impIVA.value=iva;
   };
   [$pct,$bruto].forEach(el=>el.addEventListener('input',calc)); calc();
 
-  // eventos
+  /* eventos */
   $form.addEventListener('submit',onSubmit);
   $can .addEventListener('click',reset);
 
-  $('#ticket-filter-btn').addEventListener('click',e=>{e.preventDefault();onFilter();});
+  $('#ticket-filter-btn').addEventListener('click',onFilter);
   $('#ticket-export-btn').addEventListener('click',exportPDF);
   $('#ticket-autofill-btn').addEventListener('click',autofill);
 
@@ -46,14 +46,14 @@ const $=id=>document.getElementById(id);
 /* ---------- autofill ---------- */
 async function autofill(){
   if(!$file.files.length){alert('Selecciona imagen');return;}
-  const fd=new FormData(); fd.append('foto',$file.files[0]);
+  const fd=new FormData();fd.append('foto',$file.files[0]);
   try{
     const r=await api('/tickets/autofill',{method:'POST',body:fd});
     if(r.localizacion)$loc.value=r.localizacion;
     if(r.motivo)$mot.value=r.motivo;
     if(r.dinero)$bruto.value=(+r.dinero).toFixed(2);
     if(r.fecha)$fecha.value=r.fecha.split('/').reverse().join('-');
-    const event=new Event('input'); $bruto.dispatchEvent(event);
+    calc();
   }catch(err){alert(err.message);}
 }
 
@@ -69,7 +69,7 @@ async function onSubmit(e){
   fd.append('importe_bruto',$bruto.value);
 
   try{
-    if($id.value){ // update
+    if($id.value){
       await api(`/tickets/${$id.value}`,{
         method:'PUT',
         headers:{'Content-Type':'application/json'},
@@ -79,7 +79,7 @@ async function onSubmit(e){
         })
       });
       alert('Ticket actualizado');
-    }else{         // insert
+    }else{
       await api('/tickets',{method:'POST',body:fd});
       alert('Ticket agregado');
     }
@@ -87,7 +87,6 @@ async function onSubmit(e){
   }catch(err){alert(err.message);}
 }
 
-/* ---------- reset ---------- */
 function reset(){
   $form.reset(); $id.value=''; $sub.textContent='Agregar Ticket';
   $can.style.display='none'; $neto.value=$impIVA.value='';
@@ -106,8 +105,7 @@ function render(rows){
   const $r=$('ticket-results');
   if(!rows.length){$r.innerHTML='<p>No se encontraron tickets.</p>';$('#ticket-total').textContent='0.00';return;}
 
-  const head=['ID','Fecha','Localización','Base','IVA','%','Motivo','Foto','Acc.']
-             .map(h=>`<th>${h}</th>`).join('');
+  const head=['ID','Fecha','Localización','Base','IVA','%','Motivo','Foto','Acc'].map(h=>`<th>${h}</th>`).join('');
   const body=rows.map(t=>`
     <tr>
       <td>${t.id}</td><td>${t.fecha}</td><td>${t.localizacion}</td>
@@ -126,8 +124,7 @@ function render(rows){
 /* ---------- delegación ---------- */
 function delegate(e){
   if(e.target.matches('.delete-ticket')){
-    const id=e.target.dataset.id;
-    if(!confirm('¿Eliminar ticket?'))return;
+    const id=e.target.dataset.id;if(!confirm('Eliminar ticket?'))return;
     api(`/tickets/${id}`,{method:'DELETE'})
       .then(()=>e.target.closest('tr').remove())
       .catch(err=>alert(err.message));
@@ -137,15 +134,18 @@ function delegate(e){
     $id.value=t.id;$loc.value=t.localizacion;$mot.value=t.motivo;
     $fecha.value=t.fecha.split(' ')[0];
     $bruto.value=(+t.dinero + +t.iva_importe).toFixed(2);
-    $pct.value=t.iva_porcentaje;
-    const event=new Event('input'); $bruto.dispatchEvent(event);
+    $pct.value=t.iva_porcentaje; calc();
     $sub.textContent='Actualizar Ticket'; $can.style.display='inline-block';
   }
 }
 
-/* ---------- export PDF / Excel ---------- */
-function exportPDF(){
-  const s=$('ticket-filter-start').value, e=$('ticket-filter-end').value;
-  const q=(s&&e)?`?start=${s}&end=${e}&format=pdf`:'?format=pdf';
-  window.open(`${API_BASE}/tickets/export${q}`,'_blank');
+/* ---------- exportar PDF ---------- */
+function exportPDF() {
+  const s = document.getElementById('ticket-filter-start')?.value,
+        e = document.getElementById('ticket-filter-end')  ?.value;
+
+  const q = (s && e) ? `?start=${s}&end=${e}&format=pdf`
+                      : '?format=pdf';
+
+  window.open(`${API_BASE}/tickets/export${q}`, '_blank');
 }
