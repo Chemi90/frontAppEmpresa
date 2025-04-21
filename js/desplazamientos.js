@@ -1,9 +1,7 @@
 /* js/desplazamientos.js */
-/* js/desplazamientos.js */
 import { api } from './api.js';
 
-let $f,$id,$sub,$can;
-let $km,$ded,$gas;
+let $f,$id,$sub,$can,$km,$ded,$gas;
 
 export function init(){
   $f   = document.getElementById('desplazamientos-form');
@@ -11,139 +9,94 @@ export function init(){
   $sub = document.getElementById('desp-submit-btn');
   $can = document.getElementById('desp-cancel-btn');
 
-  /* --- elementos para gasto --- */
   $km  = document.getElementById('desp-km');
   $ded = document.getElementById('desp-deduccion');
   $gas = document.getElementById('desp-gasto');
 
   const calcGasto = () => {
-    const g = (+$km.value || 0) * (+$ded.value || 0);
-    $gas.value = g.toFixed(2);
+    $gas.value = ((+$km.value||0)* (+$ded.value||0)).toFixed(2);
   };
-  $km .addEventListener('input', calcGasto);
-  $ded.addEventListener('input', calcGasto);
+  [$km,$ded].forEach(el=>el.addEventListener('input',calcGasto));
   calcGasto();
 
-  /* handlers generales */
-  $f.addEventListener('submit', onSubmit);
-  $can.addEventListener('click', reset);
+  $f  .addEventListener('submit',onSubmit);
+  $can.addEventListener('click',reset);
 
   document.getElementById('desp-filter-btn')
-          .addEventListener('click', onFilter);
+          .addEventListener('click',onFilter);
   document.getElementById('desplazamientos-export-btn')
-          .addEventListener('click', exportExcel);
+          .addEventListener('click',exportPDF);
 
-  document.addEventListener('click', delegate);
+  document.addEventListener('click',delegate);
 }
 
-function grabData() {
-  return {
-    fecha      : document.getElementById('desp-fecha').value,
-    origen     : document.getElementById('desp-origen').value,
-    destino    : document.getElementById('desp-destino').value,
-    distancia  : $km.value,
-    descripcion: document.getElementById('desp-descripcion').value,
-    dia        : document.getElementById('desp-dia').value,
-    cliente    : document.getElementById('desp-cliente').value,
-    deduccion  : $ded.value,
-    gasto      : $gas.value               // ← siempre enviado
+function grabData(){
+  return{
+    fecha:val('fecha'),origen:val('origen'),destino:val('destino'),
+    distancia:$km.value,descripcion:val('descripcion'),
+    dia:val('dia'),cliente:val('cliente'),
+    deduccion:$ded.value,gasto:$gas.value
   };
 }
+function val(id){return document.getElementById('desp-'+id).value;}
 
 async function onSubmit(e){
   e.preventDefault();
-  const data = grabData();
-
-  if(!data.fecha){
-    alert('La fecha es obligatoria'); return;
-  }
-  if(!data.destino){
-    alert('El destino es obligatorio'); return;
-  }
-
-  try{
-    if($id.value){            // ---- UPDATE ----
-      await api(`/desplazamientos/${$id.value}`,{
-        method:'PUT',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(data)
-      });
-      alert('Desplazamiento actualizado');
-    }else{                    // ---- INSERT ----
-      const {id}=await api('/desplazamientos',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(data)
-      });
-      alert('Desplazamiento creado ID '+id);
-    }
-    reset();
-  }catch(err){ alert(err.message); }
+  const d=grabData();
+  if(!d.fecha||!d.destino)return alert('Fecha y destino obligatorios');
+  const opts={method:$id.value?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)};
+  await api($id.value?`/desplazamientos/${$id.value}`:'/desplazamientos',opts);
+  alert('Guardado');reset();onFilter();
 }
-
-function reset(){
-  $f.reset(); $id.value='';
-  $sub.textContent='Agregar Desplazamiento';
-  $can.style.display='none';
-}
+function reset(){$f.reset();$id.value='';$sub.textContent='Agregar Desplazamiento';$can.style.display='none';$gas.value='';}
 
 async function onFilter(){
-  const s=document.getElementById('desp-filter-start').value;
-  const e=document.getElementById('desp-filter-end').value;
-  if(!s||!e) return alert('Fechas necesarias');
-  const rows=await api(`/desplazamientos?start=${s}&end=${e}`);
-  render(rows);
+  const s=flt('start'),e=flt('end');
+  if(!s||!e)return alert('Fechas necesarias');
+  render(await api(`/desplazamientos?start=${s}&end=${e}`));
 }
+function flt(s){return document.getElementById('desp-filter-'+s).value;}
 
 function render(rows){
   const $r=document.getElementById('desp-results');
-  if(!rows.length){
-    $r.innerHTML='<p>No se encontraron desplazamientos.</p>';
-    document.getElementById('desp-total').textContent='0.00'; return;
-  }
-  const head=['ID','Fecha','Origen','Destino','Km','Descripción','Día','Cliente','Deducción','Gasto','Acc.']
-            .map(h=>`<th>${h}</th>`).join('');
+  if(!rows.length){$r.innerHTML='<p>No se encontraron desplazamientos.</p>';total(0);return;}
+  const head=['ID','Fecha','Origen','Destino','Km','Descripción','Día','Cliente','€/km','Gasto','Acc.']
+        .map(h=>`<th>${h}</th>`).join('');
   const body=rows.map(d=>`
     <tr>
-      <td>${d.id}</td><td>${d.fecha}</td><td>${d.origen}</td><td>${d.destino}</td>
-      <td>${d.distancia}</td><td>${d.descripcion}</td><td>${d.dia}</td>
-      <td>${d.cliente||''}</td><td>${d.deduccion}</td><td>${d.gasto}</td>
-      <td>
-        <button class="edit-desp" data-row='${JSON.stringify(d)}'>✏️</button>
-        <button class="delete-desp" data-id='${d.id}'>🗑️</button>
-      </td>
+     <td>${d.id}</td><td>${d.fecha}</td><td>${d.origen}</td><td>${d.destino}</td>
+     <td>${d.distancia}</td><td>${d.descripcion}</td><td>${d.dia}</td>
+     <td>${d.cliente||''}</td><td>${d.deduccion}</td><td>${d.gasto}</td>
+     <td>
+       <button class="edit-desp" data-row='${JSON.stringify(d)}'>✏️</button>
+       <button class="delete-desp" data-id='${d.id}'>🗑️</button>
+     </td>
     </tr>`).join('');
   $r.innerHTML=`<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
-  const total=rows.reduce((t,r)=>t+(+r.gasto||0),0).toFixed(2);
-  document.getElementById('desp-total').textContent=total;
+  total(rows.reduce((t,r)=>t+ +r.gasto,0));
 }
+function total(v){document.getElementById('desp-total').textContent=v.toFixed(2);}
 
 function delegate(e){
   if(e.target.matches('.delete-desp')){
-    const id=e.target.dataset.id;
-    if(!confirm('Eliminar?'))return;
+    const id=e.target.dataset.id;if(!confirm('Eliminar?'))return;
     api(`/desplazamientos/${id}`,{method:'DELETE'}).then(()=>e.target.closest('tr').remove());
   }
   if(e.target.matches('.edit-desp')){
     const d=JSON.parse(e.target.dataset.row);
-    document.getElementById('desp-current-id').value = d.id;
-    document.getElementById('desp-fecha').value      = d.fecha;
-    document.getElementById('desp-origen').value     = d.origen;
-    document.getElementById('desp-destino').value    = d.destino;
-    document.getElementById('desp-km').value         = d.distancia;
-    document.getElementById('desp-descripcion').value= d.descripcion;
-    document.getElementById('desp-dia').value        = d.dia;
-    document.getElementById('desp-cliente').value    = d.cliente;
-    document.getElementById('desp-deduccion').value  = d.deduccion;
-    document.getElementById('desp-gasto').value      = d.gasto;
-    $sub.textContent='Actualizar Desplazamiento';
-    $can.style.display='inline-block';
+    Object.entries({
+      'desp-current-id':d.id,'desp-fecha':d.fecha,'desp-origen':d.origen,
+      'desp-destino':d.destino,'desp-km':d.distancia,'desp-descripcion':d.descripcion,
+      'desp-dia':d.dia,'desp-cliente':d.cliente,'desp-deduccion':d.deduccion,
+      'desp-gasto':d.gasto
+    }).forEach(([i,v])=>document.getElementById(i).value=v);
+    $sub.textContent='Actualizar Desplazamiento';$can.style.display='inline-block';
   }
 }
 
-function exportExcel(){
-  const s=document.getElementById('desp-filter-start').value;
-  const e=document.getElementById('desp-filter-end').value;
-  const q=s&&e?`?start=${s}&end=${e}`:'';
+/* ---- exportar PDF ---- */
+function exportPDF(){
+  const s=flt('start'),e=flt('end');
+  const q=(s&&e)?`?start=${s}&end=${e}&format=pdf`:'?format=pdf';
   window.open(`/api/desplazamientos/export${q}`,'_blank');
 }

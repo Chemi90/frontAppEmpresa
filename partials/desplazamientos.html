@@ -1,19 +1,21 @@
+<!-- partials/desplazamientos.html -->
 <section id="desplazamientos" class="tab-content">
   <h2>Desplazamientos</h2>
-  <form id="desplazamientos-form">
-    <input type="hidden" id="desp-current-id" name="id">
-    <label>Fecha:<input type="date" id="desp-fecha" name="fecha"></label>
-    <label for="desp-origen">Lugar de Origen:</label>
-    <input type="text" id="desp-origen" name="origen" value="Atarfe">
-    <label>Destino:<input type="text" id="desp-destino" name="destino"></label>
-    <label>Kilómetros:<input type="number" step="0.01" id="desp-km" name="distancia"></label>
-    <label>Descripción:<textarea id="desp-descripcion" name="descripcion"></textarea></label>
-    <label>Día:<input type="text" id="desp-dia" name="dia"></label>
-    <label>Cliente:<input type="text" id="desp-cliente" name="cliente"></label>
-    <label>Deducción/km (€):<input type="number" step="0.01" id="desp-deduccion" name="deduccion" value="0.26"></label>
-    <label>Gasto total (€):<input type="number" step="0.01" id="desp-gasto" name="gasto" readonly></label>
 
-    <button type="submit" id="desp-submit-btn">Agregar Desplazamiento</button>
+  <form id="desplazamientos-form">
+    <input type="hidden" id="desp-current-id">
+
+    <label>Fecha:     <input type="date"  id="desp-fecha"></label>
+    <label>Origen:    <input type="text"  id="desp-origen" value="Atarfe"></label>
+    <label>Destino:   <input type="text"  id="desp-destino"></label>
+    <label>Km:        <input type="number" step="0.01" id="desp-km"></label>
+    <label>Descripción:<textarea id="desp-descripcion"></textarea></label>
+    <label>Día:       <input type="text"  id="desp-dia"></label>
+    <label>Cliente:   <input type="text"  id="desp-cliente"></label>
+    <label>€ /km:     <input type="number" step="0.01" id="desp-deduccion" value="0.26"></label>
+    <label>Gasto (€): <input type="number" step="0.01" id="desp-gasto" readonly></label>
+
+    <button id="desp-submit-btn">Agregar Desplazamiento</button>
     <button type="button" id="desp-cancel-btn" style="display:none;">Cancelar</button>
   </form>
 
@@ -28,6 +30,6 @@
 
   <div class="summary">
     <h3>Total: <span id="desp-total">0.00</span> €</h3>
-    <button id="desplazamientos-export-btn">Generar Excel</button>
+    <button id="desplazamientos-export-btn">Generar PDF</button>
   </div>
 </section>

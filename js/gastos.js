@@ -1,9 +1,8 @@
 /* js/gastos.js
- * Gestión completa del formulario “Gastos”:
- * – Cálculo IVA y deducible en tiempo real
- * – División opcional en 4 ejercicios (checkbox)
- * – Alta, edición, borrado, filtro, exportación
- *   (API base: /api/gastos, autenticación vía X‑USER-ID ya manejada en api.js)
+ * Gestión integral del módulo “Gastos” con:
+ *   – Cálculo de IVA + deducible
+ *   – División opcional en 4 años
+ *   – CRUD, filtro y EXPORT‑PDF
  */
 
 import { api } from './api.js';
@@ -14,9 +13,9 @@ let
   $pctDed, $impDed,
   $chkDiv, $boxDivInfo, $impCuota;
 
-/* ------------ inicialización global ------------- */
+/* ---------- inicializar ---------- */
 export function init() {
-  /* nodos */
+  /* refs */
   $form    = document.getElementById('gastos-form');
   $id      = document.getElementById('gasto-current-id');
   $submit  = document.getElementById('gasto-submit-btn');
@@ -30,9 +29,9 @@ export function init() {
   $pctDed  = document.getElementById('gasto-porcentaje');
   $impDed  = document.getElementById('gasto-deducible');
 
-  $chkDiv      = document.getElementById('gasto-dividir');
-  $boxDivInfo  = document.getElementById('dividir-info');
-  $impCuota    = document.getElementById('gasto-dividir-imp');
+  $chkDiv     = document.getElementById('gasto-dividir');
+  $boxDivInfo = document.getElementById('dividir-info');
+  $impCuota   = document.getElementById('gasto-dividir-imp');
 
   /* eventos */
   [$pctIVA, $bruto].forEach(el => el.addEventListener('input', calcIVA));
@@ -42,29 +41,28 @@ export function init() {
     calcDeductible();
   });
 
-  $form  .addEventListener('submit', onSubmit);
+  $form .addEventListener('submit', onSubmit);
   $cancel.addEventListener('click', reset);
 
-  document.getElementById('gastos-filter-btn')
-          .addEventListener('click', onFilter);
-
-  document.getElementById('gastos-export-btn')
-          .addEventListener('click', exportExcel);
+  document.getElementById('gastos-filter-btn').addEventListener('click', onFilter);
+  document.getElementById('gastos-export-btn').addEventListener('click', exportPDF);
 
   document.addEventListener('click', delegate);
 
-  /* precálculo inicial */
-  calcIVA();
+  calcIVA();          // precálculo inicial
 }
 
-/* ------------ cálculos -------------------------- */
+/* ---------- cálculos ---------- */
 function calcIVA() {
   const pct = +$pctIVA.value || 0,
         b   = +$bruto.value  || 0;
+
   const base = (b / (1 + pct / 100)).toFixed(2);
   const iva  = (b - base).toFixed(2);
+
   $neto.value   = base;
   $impIVA.value = iva;
+
   calcDeductible();
 }
 
@@ -72,13 +70,15 @@ function calcDeductible() {
   const base = +$neto.value || 0;
   const pct  = +$pctDed.value || 0;
   const ded  = (base * pct / 100).toFixed(2);
+
   $impDed.value = ded;
+
   if ($chkDiv.checked) {
     $impCuota.value = (ded / 4).toFixed(2);
   }
 }
 
-/* ------------ helpers datos --------------------- */
+/* ---------- helpers ---------- */
 function buildPayload() {
   return {
     fecha               : document.getElementById('gasto-fecha').value,
@@ -86,7 +86,6 @@ function buildPayload() {
     iva_porcentaje      : $pctIVA.value,
     importe_bruto       : $bruto.value,
     porcentaje_deducible: $pctDed.value,
-    // importe_deducible lo recalcula el back, pero enviamos por transparencia
     importe_deducible   : $impDed.value,
     nota                : document.getElementById('gasto-nota').value,
     gasto_compartido    : document.getElementById('gasto-compartido')?.checked ? 1 : 0,
@@ -94,41 +93,38 @@ function buildPayload() {
   };
 }
 
-/* ------------ submit ---------------------------- */
+/* ---------- submit ---------- */
 async function onSubmit(e) {
   e.preventDefault();
   const data = buildPayload();
 
-  /* validaciones mínimas en front */
   if (!data.fecha || !data.tipo || !data.importe_bruto) {
-    alert('Fecha, tipo e importe son obligatorios');
+    alert('Fecha, tipo e importe bruto son obligatorios');
     return;
   }
 
   try {
-    if ($id.value) {                  /* UPDATE */
+    if ($id.value) {                         // UPDATE
       await api(`/gastos/${$id.value}`, {
         method : 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body   : JSON.stringify(data)
       });
       alert('Gasto actualizado');
-    } else {                          /* INSERT */
-      const res = await api('/gastos', {
+    } else {                                 // INSERT
+      await api('/gastos', {
         method : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body   : JSON.stringify(data)
       });
-      alert(res.message || 'Gasto agregado');
+      alert('Gasto agregado');
     }
     reset();
-    onFilter();                       // refresca tabla si hay filtro activo
-  } catch (err) {
-    alert(err.message);
-  }
+    onFilter();
+  } catch (err) { alert(err.message); }
 }
 
-/* ------------ reset form ------------------------ */
+/* ---------- reset ---------- */
 function reset() {
   $form.reset();
   $id.value = '';
@@ -138,23 +134,17 @@ function reset() {
   $neto.value = $impIVA.value = $impDed.value = $impCuota.value = '';
 }
 
-/* ------------ filtro ---------------------------- */
+/* ---------- filtro ---------- */
 async function onFilter() {
   const s = document.getElementById('gastos-filter-start').value,
         e = document.getElementById('gastos-filter-end').value;
-  if (!s || !e) {
-    alert('Seleccione ambas fechas');
-    return;
-  }
-  try {
-    const rows = await api(`/gastos?start=${s}&end=${e}`);
-    render(rows);
-  } catch (err) {
-    alert(err.message);
-  }
+  if (!s || !e) { alert('Seleccione ambas fechas'); return; }
+
+  try { render(await api(`/gastos?start=${s}&end=${e}`)); }
+  catch (err) { alert(err.message); }
 }
 
-/* ------------ render tabla ---------------------- */
+/* ---------- render ---------- */
 function render(rows) {
   const $res = document.getElementById('gastos-results');
   if (!rows.length) {
@@ -163,10 +153,9 @@ function render(rows) {
     return;
   }
 
-  const head = [
-    'ID','Fecha','Tipo','Base (€)','IVA (€)','% IVA',
-    '% Ded','Ded (€)','Dividido','Nota','Acc.'
-  ].map(h => `<th>${h}</th>`).join('');
+  const th = h => `<th>${h}</th>`;
+  const head = ['ID','Fecha','Tipo','Base (€)','IVA (€)','% IVA',
+                '% Ded','Ded (€)','Dividido','Nota','Acc.'].map(th).join('');
 
   const body = rows.map(g => `
     <tr>
@@ -184,18 +173,17 @@ function render(rows) {
         <button class="edit-gasto" data-row='${JSON.stringify(g)}'>✏️</button>
         <button class="delete-gasto" data-id='${g.id}'>🗑️</button>
       </td>
-    </tr>
-  `).join('');
+    </tr>`).join('');
 
   $res.innerHTML = `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 
-  const total = rows.reduce((sum,r) => sum + (+r.importe_total || 0), 0).toFixed(2);
+  const total = rows.reduce((s,r) => s + (+r.importe_total || 0), 0).toFixed(2);
   document.getElementById('gastos-total').textContent = total;
 }
 
-/* ------------ delegate edit / delete ------------ */
+/* ---------- delegación editar / borrar ---------- */
 function delegate(e) {
-  /* eliminar */
+  /* borrar */
   if (e.target.matches('.delete-gasto')) {
     const id = e.target.dataset.id;
     if (!confirm('¿Eliminar gasto?')) return;
@@ -212,10 +200,9 @@ function delegate(e) {
     document.getElementById('gasto-fecha').value = g.fecha.split(' ')[0];
     document.getElementById('gasto-tipo').value  = g.tipo;
 
-    /* bruto = base + IVA */
-    $bruto.value   = (+g.importe_total + +g.iva_importe).toFixed(2);
-    $pctIVA.value  = g.iva_porcentaje;
-    $pctDed.value  = g.porcentaje_deducible;
+    $bruto.value  = (+g.importe_total + +g.iva_importe).toFixed(2);
+    $pctIVA.value = g.iva_porcentaje;
+    $pctDed.value = g.porcentaje_deducible;
     document.getElementById('gasto-nota').value = g.nota || '';
     document.getElementById('gasto-compartido').checked = !!g.gasto_compartido;
 
@@ -228,10 +215,10 @@ function delegate(e) {
   }
 }
 
-/* ------------ export ---------------------------- */
-function exportExcel() {
+/* ---------- exportar PDF ---------- */
+function exportPDF() {
   const s = document.getElementById('gastos-filter-start').value,
         e = document.getElementById('gastos-filter-end').value;
-  const q = (s && e) ? `?start=${s}&end=${e}` : '';
+  const q = (s && e) ? `?start=${s}&end=${e}&format=pdf` : '?format=pdf';
   window.open(`/api/gastos/export${q}`, '_blank');
 }

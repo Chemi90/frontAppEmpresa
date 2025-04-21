@@ -3,14 +3,11 @@
   <h2>Gastos Varios</h2>
 
   <form id="gastos-form">
-    <input type="hidden" id="gasto-current-id" name="id">
+    <input type="hidden" id="gasto-current-id">
 
-    <label>Fecha:
-      <input type="date" id="gasto-fecha" name="fecha">
-    </label>
-
+    <label>Fecha:<input type="date" id="gasto-fecha"></label>
     <label>Tipo:
-      <select id="gasto-tipo" name="tipo">
+      <select id="gasto-tipo">
         <option>Terminal móvil</option><option>ChatGPT Plus</option>
         <option>Electricidad</option><option>Internet</option>
         <option>Seguro coche</option><option>Gasolina</option>
@@ -19,53 +16,26 @@
       </select>
     </label>
 
-    <!-- --- IVA --- -->
     <fieldset>
       <legend>IVA</legend>
-
-      <label>% IVA:
-        <input type="number" step="0.01" id="gasto-iva-pct" name="iva_porcentaje" value="21">
-      </label>
-
-      <label>Importe BRUTO (con IVA):
-        <input type="number" step="0.01" id="gasto-bruto" name="importe_bruto">
-      </label>
-
-      <label>Importe SIN IVA (€):
-        <input type="number" step="0.01" id="gasto-neto" readonly>
-      </label>
-
-      <label>IVA (€):
-        <input type="number" step="0.01" id="gasto-iva-imp" readonly>
-      </label>
+      <label>% IVA:<input type="number" step="0.01" id="gasto-iva-pct" value="21"></label>
+      <label>Bruto €:<input type="number" step="0.01" id="gasto-bruto"></label>
+      <label>Base €:<input type="number" step="0.01" id="gasto-neto" readonly></label>
+      <label>IVA €:<input type="number" step="0.01" id="gasto-iva-imp" readonly></label>
     </fieldset>
 
-    <!-- deducción -->
-    <label>% Deducible:
-      <input type="number" step="0.01" id="gasto-porcentaje" name="porcentaje_deducible" value="100">
-    </label>
+    <label>% Deducible:<input type="number" step="0.01" id="gasto-porcentaje" value="100"></label>
+    <label>Deducible €:<input type="number" step="0.01" id="gasto-deducible" readonly></label>
 
-    <label>Importe deducible (€):
-      <input type="number" step="0.01" id="gasto-deducible" name="importe_deducible" readonly>
-    </label>
-
-    <!-- -------- dividir en 4 ---------- -->
-    <label>
-      <input type="checkbox" id="gasto-dividir" name="dividir_deduccion">
-      Dividir en 4 años
-    </label>
-
+    <label><input type="checkbox" id="gasto-dividir">Dividir en 4 años</label>
     <div id="dividir-info" style="display:none;">
-      <label>Importe por año (€):
-        <input type="number" step="0.01" id="gasto-dividir-imp" readonly>
-      </label>
+      <label>Cuota/año €:<input type="number" step="0.01" id="gasto-dividir-imp" readonly></label>
     </div>
 
-    <label>Nota:
-      <textarea id="gasto-nota" name="nota"></textarea>
-    </label>
+    <label>Nota:<textarea id="gasto-nota"></textarea></label>
+    <label><input type="checkbox" id="gasto-compartido">Gasto compartido</label>
 
-    <button type="submit" id="gasto-submit-btn">Agregar Gasto</button>
+    <button id="gasto-submit-btn">Agregar Gasto</button>
     <button type="button" id="gasto-cancel-btn" style="display:none;">Cancelar</button>
   </form>
 
@@ -79,7 +49,7 @@
   <div id="gastos-results"></div>
 
   <div class="summary">
-    <h3>Total Gastos: <span id="gastos-total">0.00</span> €</h3>
-    <button id="gastos-export-btn">Generar Excel</button>
+    <h3>Total: <span id="gastos-total">0.00</span> €</h3>
+    <button id="gastos-export-btn">Generar PDF</button>
   </div>
 </section>
