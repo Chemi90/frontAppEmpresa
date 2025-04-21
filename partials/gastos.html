@@ -3,7 +3,6 @@
   <h2>Gastos Varios</h2>
 
   <form id="gastos-form">
-    <!-- oculto para modo edición -->
     <input type="hidden" id="gasto-current-id" name="id">
 
     <label>Fecha:
@@ -20,7 +19,7 @@
       </select>
     </label>
 
-    <!--  IVA  -->
+    <!-- --- IVA --- -->
     <fieldset>
       <legend>IVA</legend>
 
@@ -42,10 +41,6 @@
     </fieldset>
 
     <!-- deducción -->
-    <label>¿Gasto compartido?
-      <input type="checkbox" id="gasto-compartido" name="gasto_compartido">
-    </label>
-
     <label>% Deducible:
       <input type="number" step="0.01" id="gasto-porcentaje" name="porcentaje_deducible" value="100">
     </label>
@@ -53,6 +48,18 @@
     <label>Importe deducible (€):
       <input type="number" step="0.01" id="gasto-deducible" name="importe_deducible" readonly>
     </label>
+
+    <!-- -------- dividir en 4 ---------- -->
+    <label>
+      <input type="checkbox" id="gasto-dividir" name="dividir_deduccion">
+      Dividir en 4 años
+    </label>
+
+    <div id="dividir-info" style="display:none;">
+      <label>Importe por año (€):
+        <input type="number" step="0.01" id="gasto-dividir-imp" readonly>
+      </label>
+    </div>
 
     <label>Nota:
       <textarea id="gasto-nota" name="nota"></textarea>

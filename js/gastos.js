@@ -2,9 +2,10 @@
 import { api } from './api.js';
 
 let $f,$id,$sub,$can;
-let $pct,$bruto,$neto,$iva,$por,$ded;
+let $pct,$bruto,$neto,$iva,$por,$ded,$chk,$info,$cuota;
 
 export function init(){
+  // nodos
   $f   = document.getElementById('gastos-form');
   $id  = document.getElementById('gasto-current-id');
   $sub = document.getElementById('gasto-submit-btn');
@@ -16,25 +17,37 @@ export function init(){
   $iva   = document.getElementById('gasto-iva-imp');
   $por   = document.getElementById('gasto-porcentaje');
   $ded   = document.getElementById('gasto-deducible');
+  $chk   = document.getElementById('gasto-dividir');
+  $info  = document.getElementById('dividir-info');
+  $cuota = document.getElementById('gasto-dividir-imp');
 
+  /* --- cálculo IVA --- */
   const calcIVA = () => {
-    const p = +$pct.value || 0, b = +$bruto.value || 0;
-    const base = (b / (1 + p/100)).toFixed(2);
+    const p = +$pct.value||0, b = +$bruto.value||0;
+    const base = (b / (1+p/100)).toFixed(2);
     const imp  = (b - base).toFixed(2);
-    $neto.value = base;
-    $iva.value  = imp;
+    $neto.value = base; $iva.value = imp;
     calcDeducible();
   };
+  /* --- deducción --- */
   const calcDeducible = () => {
     const d = (+$neto.value||0) * ((+$por.value||0)/100);
     $ded.value = d.toFixed(2);
+    if($chk.checked){
+      $cuota.value = (d/4).toFixed(2);
+    }
   };
 
-  $pct.addEventListener('input', calcIVA);
-  $bruto.addEventListener('input', calcIVA);
+  /* --- listeners --- */
+  [$pct,$bruto].forEach(el=>el.addEventListener('input', calcIVA));
   $por.addEventListener('input', calcDeducible);
 
-  $f.addEventListener('submit', onSubmit);
+  $chk.addEventListener('change',()=>{
+    $info.style.display = $chk.checked ? 'block' : 'none';
+    calcDeducible();
+  });
+
+  $f  .addEventListener('submit', onSubmit);
   $can.addEventListener('click', reset);
 
   document.getElementById('gastos-filter-btn')
@@ -43,22 +56,43 @@ export function init(){
           .addEventListener('click', exportExcel);
 
   document.addEventListener('click', delegate);
+
+  calcIVA();        // inicial
+}
+
+function formDataJSON(){
+  return {
+    fecha                : document.getElementById('gasto-fecha').value,
+    tipo                 : document.getElementById('gasto-tipo').value,
+    iva_porcentaje       : $pct.value,
+    importe_bruto        : $bruto.value,
+    porcentaje_deducible : $por.value,
+    importe_deducible    : $ded.value,
+    nota                 : document.getElementById('gasto-nota').value,
+    gasto_compartido     : document.getElementById('gasto-compartido')?.checked?1:0,
+    dividir_deduccion    : $chk.checked ? 1 : 0
+  };
 }
 
 async function onSubmit(e){
   e.preventDefault();
-  const fd = new FormData($f);  // incluye importe_bruto e iva_porcentaje
+  const data = formDataJSON();
+  if(!data.fecha || !data.tipo || !data.importe_bruto){
+    alert('Fecha, tipo e importe son obligatorios'); return;
+  }
   try{
     if($id.value){
-      await api(`/gastos/${$id.value}`, {
-        method:'PUT',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(Object.fromEntries(fd))
+      await api(`/gastos/${$id.value}`,{
+        method:'PUT',headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(data)
       });
       alert('Gasto actualizado');
-    } else {
-      const {id} = await api('/gastos', {method:'POST', body:fd});
-      alert('Gasto creado ID '+id);
+    }else{
+      const {message}=await api('/gastos',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+      });
+      alert(message);
     }
     reset();
   }catch(err){alert(err.message);}
@@ -66,7 +100,8 @@ async function onSubmit(e){
 
 function reset(){
   $f.reset(); $id.value=''; $sub.textContent='Agregar Gasto';
-  $can.style.display='none'; $neto.value=''; $iva.value=''; $ded.value='';
+  $can.style.display='none'; $info.style.display='none';
+  $neto.value=''; $iva.value=''; $ded.value=''; $cuota.value='';
 }
 
 async function onFilter(){
