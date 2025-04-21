@@ -5,7 +5,7 @@
  *   – CRUD, filtro y EXPORT‑PDF
  */
 
-import { api } from './api.js';
+import { api, API_BASE } from './api.js';
 
 let
   $form, $id, $submit, $cancel,
@@ -217,9 +217,12 @@ function delegate(e) {
 
 /* ---------- exportar PDF ---------- */
 function exportPDF() {
-    const s = document.getElementById('gastos-filter-start').value,
-          e = document.getElementById('gastos-filter-end').value;
-    const q = (s && e) ? `?start=${s}&end=${e}&format=pdf` : '?format=pdf';
+    const s = document.getElementById('gastos-filter-start')?.value,
+          e = document.getElementById('gastos-filter-end')  ?.value;
+  
+    const q = (s && e) ? `?start=${s}&end=${e}&format=pdf`
+                        : '?format=pdf';
+  
     window.open(`${API_BASE}/gastos/export${q}`, '_blank');
   }
   

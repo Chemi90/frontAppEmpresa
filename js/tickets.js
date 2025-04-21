@@ -1,5 +1,5 @@
 /* js/tickets.js */
-import { api } from './api.js';
+import { api, API_BASE } from './api.js';
 
 let
   $form,$id,$sub,$can,
@@ -141,9 +141,12 @@ function delegate(e){
 
 /* ---------- exportar PDF ---------- */
 function exportPDF() {
-    const s = document.getElementById('ticket-filter-start').value,
-          e = document.getElementById('ticket-filter-end').value;
-    const q = (s && e) ? `?start=${s}&end=${e}&format=pdf` : '?format=pdf';
+    const s = document.getElementById('ticket-filter-start')?.value,
+          e = document.getElementById('ticket-filter-end')  ?.value;
+  
+    const q = (s && e) ? `?start=${s}&end=${e}&format=pdf`
+                        : '?format=pdf';
+  
     window.open(`${API_BASE}/tickets/export${q}`, '_blank');
   }
   

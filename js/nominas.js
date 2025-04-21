@@ -1,5 +1,5 @@
 /* js/nominas.js */
-import { api } from './api.js';
+import { api, API_BASE } from './api.js';
 
 let $f,$id,$sub,$can,$file;
 
@@ -121,9 +121,12 @@ function delegate(e){
 
 /* ---------- exportar PDF ---------- */
 function exportPDF() {
-    const s = document.getElementById('nominas-filter-start').value,
-          e = document.getElementById('nominas-filter-end').value;
-    const q = (s && e) ? `?start=${s}&end=${e}&format=pdf` : '?format=pdf';
+    const s = document.getElementById('nominas-filter-start')?.value,
+          e = document.getElementById('nominas-filter-end')  ?.value;
+  
+    const q = (s && e) ? `?start=${s}&end=${e}&format=pdf`
+                        : '?format=pdf';
+  
     window.open(`${API_BASE}/nominas/export${q}`, '_blank');
   }
   

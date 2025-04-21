@@ -1,5 +1,5 @@
 /* js/facturas.js */
-import { api } from './api.js';
+import { api, API_BASE } from './api.js';
 
 let $f,$id,$sub,$can,$pct,$bruto,$neto,$iva;
 
@@ -90,9 +90,12 @@ function delegate(e){
 
 /* ---- exportar PDF ---- */
 function exportPDF() {
-    const s = document.getElementById('facturas-filter-start').value,
-          e = document.getElementById('facturas-filter-end').value;
-    const q = (s && e) ? `?start=${s}&end=${e}&format=pdf` : '?format=pdf';
+    const s = document.getElementById('factura-filter-start')?.value,
+          e = document.getElementById('factura-filter-end')  ?.value;
+  
+    const q = (s && e) ? `?start=${s}&end=${e}&format=pdf`
+                        : '?format=pdf';
+  
     window.open(`${API_BASE}/facturas/export${q}`, '_blank');
   }
   
