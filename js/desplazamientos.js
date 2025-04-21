@@ -1,7 +1,9 @@
 /* js/desplazamientos.js */
+/* js/desplazamientos.js */
 import { api } from './api.js';
 
 let $f,$id,$sub,$can;
+let $km,$ded,$gas;
 
 export function init(){
   $f   = document.getElementById('desplazamientos-form');
@@ -9,6 +11,20 @@ export function init(){
   $sub = document.getElementById('desp-submit-btn');
   $can = document.getElementById('desp-cancel-btn');
 
+  /* --- elementos para gasto --- */
+  $km  = document.getElementById('desp-km');
+  $ded = document.getElementById('desp-deduccion');
+  $gas = document.getElementById('desp-gasto');
+
+  const calcGasto = () => {
+    const g = (+$km.value || 0) * (+$ded.value || 0);
+    $gas.value = g.toFixed(2);
+  };
+  $km .addEventListener('input', calcGasto);
+  $ded.addEventListener('input', calcGasto);
+  calcGasto();
+
+  /* handlers generales */
   $f.addEventListener('submit', onSubmit);
   $can.addEventListener('click', reset);
 
@@ -21,17 +37,16 @@ export function init(){
 }
 
 function grabData() {
-  /* recolecta los valores del formulario */
   return {
     fecha      : document.getElementById('desp-fecha').value,
     origen     : document.getElementById('desp-origen').value,
     destino    : document.getElementById('desp-destino').value,
-    distancia  : document.getElementById('desp-km').value,
+    distancia  : $km.value,
     descripcion: document.getElementById('desp-descripcion').value,
     dia        : document.getElementById('desp-dia').value,
     cliente    : document.getElementById('desp-cliente').value,
-    deduccion  : document.getElementById('desp-deduccion').value,
-    gasto      : document.getElementById('desp-gasto').value
+    deduccion  : $ded.value,
+    gasto      : $gas.value               // ← siempre enviado
   };
 }
 
