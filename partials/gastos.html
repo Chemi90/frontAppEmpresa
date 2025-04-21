@@ -1,31 +1,46 @@
 <section id="gastos" class="tab-content">
-    <h2>Gastos Varios</h2>
-    <form id="gastos-form">
-      <input type="hidden" id="gasto-current-id" name="id" value="">
-      <label>Fecha:<input type="date" id="gasto-fecha" name="fecha"></label>
-      <label>Tipo:<select id="gasto-tipo" name="tipo">
-        <option>Terminal móvil</option><option>ChatGPT Plus</option><option>Electricidad</option>
-        <option>Internet</option><option>Seguro coche</option><option>Gasolina</option>
-        <option>IBI vivienda</option><option>Comunidad de vecinos</option><option>Otros</option>
-      </select></label>
-      <label>Importe (€):<input type="number" step="0.01" id="gasto-total" name="importe_total"></label>
-      <label>Compartido:<input type="checkbox" id="gasto-compartido" name="gasto_compartido"></label>
-      <label>% Deducible:<input type="number" step="0.01" id="gasto-porcentaje" name="porcentaje_deducible" disabled></label>
-      <label>Deducible (€):<input type="number" step="0.01" id="gasto-deducible" name="importe_deducible" readonly></label>
-      <label>Dividir en 4 años:<input type="checkbox" id="gasto-dividir" name="dividir_cuatro"></label>
-      <div id="dividir-info"><label>Por año (€):<input type="number" step="0.01" id="gasto-dividir-importe" readonly></label></div>
-      <label>Nota:<textarea id="gasto-nota" name="nota"></textarea></label>
-      <button type="submit" id="gasto-submit-btn">Agregar Gasto</button>
-      <button type="button" id="gasto-cancel-btn">Cancelar</button>
-    </form>
-    <div id="gastos-filter">
-      <label>Desde:<input type="date" id="gastos-filter-start"></label>
-      <label>Hasta:<input type="date" id="gastos-filter-end"></label>
-      <button id="gastos-filter-btn">Filtrar</button>
+  <h2>Gastos Varios</h2>
+  <form id="gastos-form">
+    <input type="hidden" id="gasto-current-id" name="id">
+    <label>Fecha:<input type="date" id="gasto-fecha" name="fecha"></label>
+
+    <label>Tipo:
+      <select id="gasto-tipo" name="tipo">
+        <option>Terminal móvil</option><option>ChatGPT Plus</option>
+        <option>Electricidad</option><option>Internet</option>
+        <option>Seguro coche</option><option>Gasolina</option>
+        <option>IBI vivienda</option><option>Comunidad de vecinos</option>
+        <option>Otros</option>
+      </select>
+    </label>
+
+    <label>Importe total (€):<input type="number" step="0.01" id="gasto-total" name="importe_total"></label>
+    <label><input type="checkbox" id="gasto-compartido" name="gasto_compartido"> Gasto Compartido</label>
+    <label>% Deducible:<input type="number" step="0.01" id="gasto-porcentaje" name="porcentaje_deducible" disabled></label>
+    <label>Importe deducible (€):<input type="number" step="0.01" id="gasto-deducible" name="importe_deducible" readonly></label>
+
+    <label><input type="checkbox" id="gasto-dividir" name="dividir_cuatro"> Dividir en 4 años</label>
+    <div id="dividir-info" style="display:none;">
+      <label>Importe/año (€):<input type="number" step="0.01" id="gasto-dividir-importe" name="dividir_importe" readonly></label>
     </div>
-    <div id="gastos-results"></div>
-    <div id="gastos-summary">
-      <span>Total: <span id="gastos-total">0.00</span> €</span>
-      <button id="gastos-export-btn">Exportar Excel</button>
-    </div>
-  </section>
+
+    <label>Nota:<textarea id="gasto-nota" name="nota"></textarea></label>
+
+    <button type="submit" id="gasto-submit-btn">Agregar Gasto</button>
+    <button type="button" id="gasto-cancel-btn" style="display:none;">Cancelar</button>
+  </form>
+
+  <div class="filter">
+    <h3>Filtrar</h3>
+    <label>Desde:<input type="date" id="gastos-filter-start"></label>
+    <label>Hasta:<input type="date" id="gastos-filter-end"></label>
+    <button id="gastos-filter-btn">Filtrar</button>
+  </div>
+
+  <div id="gastos-results"></div>
+
+  <div class="summary">
+    <h3>Total: <span id="gastos-total">0.00</span> €</h3>
+    <button id="gastos-export-btn">Generar Excel</button>
+  </div>
+</section>

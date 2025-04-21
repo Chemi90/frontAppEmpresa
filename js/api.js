@@ -1,6 +1,15 @@
-export async function post(path,data){
-    const res=await fetch(`https://josemiguelruizguevara.com:5000/api/${path}`,{
-      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)
-    });if(!res.ok)throw new Error(await res.text());return res.json();
+const BASE='https://josemiguelruizguevara.com:5000/api';
+
+export async function api(path,{method='GET',body=null}={}){
+  const o={method,headers:{}};
+  if(body){
+    if(body instanceof FormData){o.body=body;}
+    else{o.headers['Content-Type']='application/json';o.body=JSON.stringify(body);}
   }
-  export async function get(path){const res=await fetch(`https://josemiguelruizguevara.com:5000/api/${path}`);return res.json();}
+  const r=await fetch(`${BASE}${path}`,o);
+  if(!r.ok){
+    let m='Error de red';try{m=(await r.json()).error||m;}catch{}
+    throw new Error(m);
+  }
+  return r.status===204?null:r.json();
+}

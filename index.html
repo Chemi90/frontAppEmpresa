@@ -1,18 +1,35 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Gestión de Ingresos y Gastos</title>
-  <link rel="stylesheet" href="css/main.css">
+
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/nav.css" />
 </head>
 <body>
-  <div id="app"><!-- Aquí inyectamos login o dashboard --></div>
 
-  <script type="module">
-    import { initLogin } from './js/login.js';
-    // Arrancamos el flujo de login
-    document.addEventListener('DOMContentLoaded', () => initLogin('#app'));
-  </script>
+  <!-- pantalla de login -->
+  <div id="login-screen"></div>
+
+  <!-- resto -->
+  <div id="main-content" style="display:none;">
+    <nav>
+      <button class="tab-button" data-target="desplazamientos">Desplazamientos</button>
+      <button class="tab-button" data-target="tickets">Tickets</button>
+      <button class="tab-button" data-target="facturas">Facturas</button>
+      <button class="tab-button" data-target="gastos">Gastos</button>
+      <button class="tab-button" data-target="nominas">Nóminas</button>
+    </nav>
+
+    <div id="tab-placeholder"></div>
+  </div>
+
+  <!-- módulos -->
+  <script type="module" src="js/api.js"        defer></script>
+  <script type="module" src="js/login.js"      defer></script>
+  <script type="module" src="js/tabs.js"       defer></script>
+  <script type="module" src="js/sw-register.js" defer></script>
 </body>
 </html>

@@ -1,27 +1,32 @@
 <section id="desplazamientos" class="tab-content">
-    <h2>Desplazamientos</h2>
-    <form id="desplazamientos-form">
-      <input type="hidden" id="desp-current-id" name="id" value="">
-      <label>Fecha:<input type="date" id="desp-fecha" name="fecha"></label>
-      <label>Origen:<input type="text" id="desp-origen" name="origen" value="Atarfe" readonly></label>
-      <label>Destino:<input type="text" id="desp-destino" name="destino"></label>
-      <label>Kilómetros:<input type="number" step="0.01" id="desp-km" name="distancia"></label>
-      <label>Descripción:<textarea id="desp-descripcion" name="descripcion"></textarea></label>
-      <label>Día:<input type="text" id="desp-dia" name="dia" placeholder="Lunes"></label>
-      <label>Cliente:<input type="text" id="desp-cliente" name="cliente"></label>
-      <label>Deducción (€):<input type="number" step="0.01" id="desp-deduccion" name="deduccion" value="0.26"></label>
-      <label>Gasto (€):<input type="number" step="0.01" id="desp-gasto" name="gasto" readonly></label>
-      <button type="submit" id="desp-submit-btn">Agregar Desplazamiento</button>
-      <button type="button" id="desp-cancel-btn">Cancelar</button>
-    </form>
-    <div id="desp-filter">
-      <label>Desde:<input type="date" id="desp-filter-start"></label>
-      <label>Hasta:<input type="date" id="desp-filter-end"></label>
-      <button id="desp-filter-btn">Filtrar</button>
-    </div>
-    <div id="desp-results"></div>
-    <div id="desp-summary">
-      <span>Total: <span id="desp-total">0.00</span> €</span>
-      <button id="desplazamientos-export-btn">Exportar Excel</button>
-    </div>
-  </section>
+  <h2>Desplazamientos</h2>
+  <form id="desplazamientos-form">
+    <input type="hidden" id="desp-current-id" name="id">
+    <label>Fecha:<input type="date" id="desp-fecha" name="fecha"></label>
+    <label>Origen:<input type="text" id="desp-origen" name="origen" value="Atarfe" readonly></label>
+    <label>Destino:<input type="text" id="desp-destino" name="destino"></label>
+    <label>Kilómetros:<input type="number" step="0.01" id="desp-km" name="distancia"></label>
+    <label>Descripción:<textarea id="desp-descripcion" name="descripcion"></textarea></label>
+    <label>Día:<input type="text" id="desp-dia" name="dia"></label>
+    <label>Cliente:<input type="text" id="desp-cliente" name="cliente"></label>
+    <label>Deducción/km (€):<input type="number" step="0.01" id="desp-deduccion" name="deduccion" value="0.26"></label>
+    <label>Gasto total (€):<input type="number" step="0.01" id="desp-gasto" name="gasto" readonly></label>
+
+    <button type="submit" id="desp-submit-btn">Agregar Desplazamiento</button>
+    <button type="button" id="desp-cancel-btn" style="display:none;">Cancelar</button>
+  </form>
+
+  <div class="filter">
+    <h3>Filtrar</h3>
+    <label>Desde:<input type="date" id="desp-filter-start"></label>
+    <label>Hasta:<input type="date" id="desp-filter-end"></label>
+    <button id="desp-filter-btn">Filtrar</button>
+  </div>
+
+  <div id="desp-results"></div>
+
+  <div class="summary">
+    <h3>Total: <span id="desp-total">0.00</span> €</h3>
+    <button id="desplazamientos-export-btn">Generar Excel</button>
+  </div>
+</section>

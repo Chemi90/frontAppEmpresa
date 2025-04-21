@@ -1,132 +1,91 @@
-// Módulo de Facturas
-(async function initFacturas() {
-    const form       = document.getElementById('facturas-form');
-    const idInput    = document.getElementById('factura-current-id');
-    const autoBtn    = document.getElementById('factura-autofill-btn');
-    const cancelBtn  = document.getElementById('factura-cancel-btn');
-    const filterBtn  = document.getElementById('factura-filter-btn');
-    const resultsDiv = document.getElementById('factura-results');
-    const totalBr    = document.getElementById('factura-total-bruto');
-    const totalNe    = document.getElementById('factura-total-neto');
-    const exportBtn  = document.getElementById('factura-export-btn');
-  
-    autoBtn.addEventListener('click', async () => {
-      const file = form['archivo'].files[0];
-      if (!file) { alert('Selecciona archivo.'); return; }
-      const fd = new FormData(); fd.append('archivo', file);
-      try {
-        const res = await fetch('https://josemiguelruizguevara.com:5000/api/facturas/autofill',{ method:'POST', body:fd });
-        const d   = await res.json();
-        if (d.fecha) {
-          const [dd,mm,yy] = d.fecha.split('/');
-          form.fecha.value = `${yy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
-        }
-        if (d.cantidad_bruta) form.bruta.value = parseFloat(d.cantidad_bruta).toFixed(2);
-        if (d.cantidad_neta)  form.neta .value = parseFloat(d.cantidad_neta).toFixed(2);
-        if (d.retencion)      form.retencion.value = parseFloat(d.retencion).toFixed(2);
-        if (d.nombre_empresa) form.empresa.value = d.nombre_empresa;
-      } catch (err) { alert('Error autofill: '+err.message); }
-    });
-  
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      const data = {
-        fecha:   form.fecha.value,
-        bruta:   form.bruta.value,
-        neta:    form.neta.value,
-        retencion: form.retencion.value,
-        empresa: form.empresa.value
-      };
-      let url    = idInput.value
-        ? `https://josemiguelruizguevara.com:5000/api/facturas/${idInput.value}`
-        : 'https://josemiguelruizguevara.com:5000/api/facturas';
-      let opts   = {
-        method: idInput.value? 'PUT':'POST',
-        headers: idInput.value? {'Content-Type':'application/json'}:{},
-        body: idInput.value? JSON.stringify(data) : (() => {
-          const fd = new FormData(form);
-          if (form.archivo.files[0]) fd.append('archivo', form.archivo.files[0]);
-          return fd;
-        })()
-      };
-      try {
-        const res = await fetch(url, opts);
-        const json = !idInput.value? await res.json() : null;
-        alert(idInput.value? 'Factura actualizada.' : 'Factura agregada. ID: '+json.id);
-        form.reset(); idInput.value=''; cancelBtn.style.display='none';
-        loadResults();
-      } catch (err) { alert('Error: '+err.message); }
-    });
-  
-    cancelBtn.addEventListener('click', () => {
-      form.reset(); idInput.value=''; cancelBtn.style.display='none';
-    });
-  
-    filterBtn.addEventListener('click', loadResults);
-    exportBtn.addEventListener('click', () => {
-      let url = 'https://josemiguelruizguevara.com:5000/api/facturas/export';
-      const s = document.getElementById('factura-filter-start').value;
-      const e = document.getElementById('factura-filter-end').value;
-      if (s && e) url += `?start=${s}&end=${e}`;
-      window.open(url,'_blank');
-    });
-  
-    async function loadResults() {
-      const s = document.getElementById('factura-filter-start').value;
-      const e = document.getElementById('factura-filter-end').value;
-      if (!s||!e) { alert('Selecciona fechas.'); return; }
-      try {
-        const res  = await fetch(`https://josemiguelruizguevara.com:5000/api/facturas?start=${s}&end=${e}`);
-        const data = await res.json();
-        let br=0, ne=0;
-        if (!data.length) {
-          resultsDiv.innerHTML = '<p>No hay facturas.</p>';
-          totalBr.textContent = totalNe.textContent = '0.00';
-          return;
-        }
-        const cols = ['ID','Fecha','Bruta','Neta','Retención','Empresa','Archivo','Acciones']
-          .reduce((h,t)=>h+`<th>${t}</th>`,'');
-        const rows = data.map(item => {
-          br += parseFloat(item.cantidad_bruta)||0;
-          ne += parseFloat(item.cantidad_neta)||0;
-          return `<tr>
-            <td>${item.id}</td>
-            <td>${item.fecha}</td>
-            <td>${item.cantidad_bruta}</td>
-            <td>${item.cantidad_neta}</td>
-            <td>${item.retencion}</td>
-            <td>${item.nombre_empresa}</td>
-            <td>${item.archivo}</td>
-            <td>
-              <button class="edit" data-json='${JSON.stringify(item)}'>✏️</button>
-              <button class="delete" data-id="${item.id}">🗑️</button>
-            </td>
-          </tr>`;
-        }).join('');
-        resultsDiv.innerHTML = `<table border="1" style="width:100%"><thead><tr>${cols}</tr></thead><tbody>${rows}</tbody></table>`;
-        totalBr.textContent = br.toFixed(2);
-        totalNe.textContent = ne.toFixed(2);
-      } catch (err) { alert('Error: '+err.message); }
-    }
-  
-    resultsDiv.addEventListener('click', async e => {
-      if (e.target.classList.contains('delete')) {
-        if (!confirm('¿Eliminar?')) return;
-        try {
-          await fetch(`https://josemiguelruizguevara.com:5000/api/facturas/${e.target.dataset.id}`,{method:'DELETE'});
-          loadResults();
-        } catch(err){alert('Error: '+err.message);}
-      }
-      if (e.target.classList.contains('edit')) {
-        const item = JSON.parse(e.target.dataset.json);
-        form.fecha.value   = item.fecha;
-        form.bruta.value   = item.cantidad_bruta;
-        form.neta.value    = item.cantidad_neta;
-        form.retencion.value = item.retencion;
-        form.empresa.value = item.nombre_empresa;
-        idInput.value      = item.id;
-        cancelBtn.style.display='inline-block';
-      }
-    });
-  })();
-  
+import {api} from './api.js';
+
+let $f,$id,$sub,$can,$file;
+export function init(){
+  $f=document.getElementById('facturas-form');
+  $id=document.getElementById('factura-current-id');
+  $sub=document.getElementById('factura-submit-btn');
+  $can=document.getElementById('factura-cancel-btn');
+  $file=document.getElementById('factura-archivo');
+
+  $f.addEventListener('submit',onSubmit);$can.addEventListener('click',reset);
+
+  document.getElementById('factura-filter-btn').addEventListener('click',onFilter);
+  document.getElementById('factura-export-btn').addEventListener('click',exportExcel);
+  document.getElementById('factura-autofill-btn').addEventListener('click',autofill);
+
+  document.addEventListener('click',delegate);
+}
+
+async function autofill(){
+  if(!$file.files.length)return alert('Selecciona archivo');
+  const fd=new FormData();fd.append('archivo',$file.files[0]);
+  try{
+    const d=await api('/facturas/autofill',{method:'POST',body:fd});
+    if(d.fecha){const p=d.fecha.split('/');document.getElementById('factura-fecha').value=p.length===3?`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`:d.fecha;}
+    if(d.cantidad_bruta)document.getElementById('factura-bruta').value=parseFloat(d.cantidad_bruta).toFixed(2);
+    if(d.cantidad_neta)document.getElementById('factura-neta').value=parseFloat(d.cantidad_neta).toFixed(2);
+    if(d.retencion)document.getElementById('factura-retencion').value=parseFloat(d.retencion).toFixed(2);
+    if(d.nombre_empresa)document.getElementById('factura-empresa').value=d.nombre_empresa;
+  }catch(err){alert(err.message);}
+}
+
+async function onSubmit(e){
+  e.preventDefault();
+  if($id.value){
+    const data=Object.fromEntries(new FormData($f));
+    try{await api(`/facturas/${$id.value}`,{method:'PUT',body:data});alert('Factura actualizada');reset();}
+    catch(err){alert(err.message);}
+  }else{
+    const fd=new FormData($f);
+    try{
+      const {id}=await api('/facturas',{method:'POST',body:fd});
+      alert('Factura agregada. ID:'+id);reset();
+    }catch(err){alert(err.message);}
+  }
+}
+function reset(){$f.reset();$id.value='';$sub.textContent='Agregar Factura';$can.style.display='none';}
+
+async function onFilter(){
+  const s=document.getElementById('factura-filter-start').value;
+  const e=document.getElementById('factura-filter-end').value;
+  if(!s||!e)return alert('Fechas necesarias');
+  try{render(await api(`/facturas?start=${s}&end=${e}`));}catch(err){alert(err.message);}
+}
+function render(rows){
+  const $r=document.getElementById('factura-results');
+  if(!rows.length){$r.innerHTML='<p>No se encontraron facturas.</p>';document.getElementById('factura-total-bruto').textContent='0.00';document.getElementById('factura-total-neto').textContent='0.00';return;}
+  const h=['ID','Fecha','Bruta','Neta','Retención','Empresa','Archivo','Acciones'].map(x=>`<th>${x}</th>`).join('');
+  const b=rows.map(f=>`
+    <tr>
+      <td>${f.id}</td><td>${f.fecha}</td><td>${f.cantidad_bruta}</td><td>${f.cantidad_neta}</td>
+      <td>${f.retencion}</td><td>${f.nombre_empresa}</td><td>${f.archivo}</td>
+      <td>
+        <button class="edit-factura" data-row='${JSON.stringify(f)}'>✏️</button>
+        <button class="delete-factura" data-id='${f.id}'>🗑️</button>
+      </td>
+    </tr>`).join('');
+  $r.innerHTML=`<table><thead><tr>${h}</tr></thead><tbody>${b}</tbody></table>`;
+  document.getElementById('factura-total-bruto').textContent=rows.reduce((t,{cantidad_bruta})=>t+(+cantidad_bruta||0),0).toFixed(2);
+  document.getElementById('factura-total-neto').textContent=rows.reduce((t,{cantidad_neta})=>t+(+cantidad_neta||0),0).toFixed(2);
+}
+function delegate(e){
+  if(e.target.matches('.delete-factura')){
+    const id=e.target.dataset.id;if(!confirm('Eliminar?'))return;
+    api(`/facturas/${id}`,{method:'DELETE'}).then(()=>e.target.closest('tr').remove()).catch(err=>alert(err.message));
+  }
+  if(e.target.matches('.edit-factura')){
+    const f=JSON.parse(e.target.dataset.row);
+    Object.entries({
+      'factura-current-id':f.id,'factura-fecha':f.fecha,'factura-bruta':f.cantidad_bruta,
+      'factura-neta':f.cantidad_neta,'factura-retencion':f.retencion,'factura-empresa':f.nombre_empresa
+    }).forEach(([i,v])=>document.getElementById(i).value=v);
+    $sub.textContent='Actualizar Factura';$can.style.display='inline-block';
+  }
+}
+function exportExcel(){
+  const s=document.getElementById('factura-filter-start').value;
+  const e=document.getElementById('factura-filter-end').value;
+  const q=s&&e?`?start=${s}&end=${e}`:'';
+  window.open(`https://josemiguelruizguevara.com:5000/api/facturas/export${q}`,'_blank');
+}

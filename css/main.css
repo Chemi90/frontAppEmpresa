@@ -1,31 +1,21 @@
-/* css/main.css */
-
-/* Imports de estilos específicos */
-@import "login.css";
-@import "nav.css";
-@import "desplazamientos.css";
-@import "tickets.css";
-@import "facturas.css";
-@import "gastos.css";
-@import "nominas.css";
-
-/* Reset y utilidades */
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-}
-.error {
-  color: red;
-}
-
-/* Antes teníamos .tab-content oculto; ahora lo mostramos */
-.tab-content {
-  display: block;   /* <- se cambia de none a block */
-  padding: 1rem;
-}
-
-/* Opcional: dar margen al main */
-#main-sections {
-  margin-top: 1rem;
-}
+:root{
+    --bg:#f2f2f2;--primary:#333;--primary-hover:#555;--white:#fff;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:Arial, sans-serif;background:var(--bg);}
+  .error{color:red;text-align:center}
+  
+  /* login */
+  #login-screen{width:300px;margin:100px auto;padding:20px;background:var(--white);border:1px solid #ddd;border-radius:5px}
+  #login-screen input,#login-screen button{width:100%;margin:5px 0;padding:10px}
+  
+  /* sección genérica */
+  .tab-content{background:var(--white);margin:20px;padding:20px;border-radius:5px}
+  .filter,.summary{margin-top:20px;background:#eaeaea;padding:10px;border-radius:5px}
+  form label{display:block;margin-top:10px}
+  form input,form textarea,form select,form button{width:100%;padding:8px;margin-top:5px}
+  input[type=checkbox]{width:auto}
+  button{cursor:pointer}
+  table{border-collapse:collapse;width:100%}
+  th,td{padding:4px;border:1px solid #aaa;text-align:left}
+  
