@@ -5,29 +5,61 @@
   <form id="facturas-form" enctype="multipart/form-data">
     <input type="hidden" id="factura-current-id" name="id">
 
-    <label>Fecha: <input type="date" id="factura-fecha" name="fecha"></label>
-    <label>Bruta (€): <input type="number" step="0.01" id="factura-bruta" name="bruta"></label>
-    <label>Neta (€): <input type="number" step="0.01" id="factura-neta" name="neta"></label>
-    <label>Retención (%): <input type="number" step="0.01" id="factura-retencion" name="retencion"></label>
-    <label>Empresa: <input type="text" id="factura-empresa" name="empresa"></label>
-    <label>Archivo: <input type="file" id="factura-archivo" name="archivo" accept=".pdf,image/*"></label>
+    <label>Fecha:
+      <input type="date" id="factura-fecha" name="fecha">
+    </label>
+
+    <!-- IVA -->
+    <fieldset>
+      <legend>IVA</legend>
+
+      <label>% IVA:
+        <input type="number" step="0.01" id="factura-iva-pct" name="iva_porcentaje" value="21">
+      </label>
+
+      <label>Importe BRUTO (con IVA):
+        <input type="number" step="0.01" id="factura-bruto" name="importe_bruto">
+      </label>
+
+      <label>Importe SIN IVA (€):
+        <input type="number" step="0.01" id="factura-neto" readonly>
+      </label>
+
+      <label>IVA (€):
+        <input type="number" step="0.01" id="factura-iva-imp" readonly>
+      </label>
+    </fieldset>
+
+    <label>Retención (%):
+      <input type="number" step="0.01" id="factura-retencion" name="retencion">
+    </label>
+
+    <label>Empresa:
+      <input type="text" id="factura-empresa" name="empresa">
+    </label>
+
+    <label>Archivo:
+      <input type="file" id="factura-archivo" name="archivo" accept=".pdf,image/*">
+    </label>
 
     <button type="button" id="factura-autofill-btn">Autorrellenar</button>
+
     <button type="submit" id="factura-submit-btn">Agregar Factura</button>
     <button type="button" id="factura-cancel-btn" style="display:none;">Cancelar</button>
   </form>
 
   <div class="filter">
     <h3>Filtrar</h3>
-    <label>Desde: <input type="date" id="factura-filter-start"></label>
-    <label>Hasta: <input type="date" id="factura-filter-end"></label>
+    <label>Desde:<input type="date" id="factura-filter-start"></label>
+    <label>Hasta:<input type="date" id="factura-filter-end"></label>
     <button id="factura-filter-btn">Filtrar</button>
   </div>
 
   <div id="factura-results"></div>
 
   <div class="summary">
-    <h3>Totales — Bruto: <span id="factura-total-bruto">0.00</span> € | Neto: <span id="factura-total-neto">0.00</span> €</h3>
+    <h3>Bruto: <span id="factura-total-bruto">0.00</span> € /
+        Neto: <span id="factura-total-neto">0.00</span> €</h3>
     <button id="factura-export-btn">Generar Excel</button>
   </div>
 </section>

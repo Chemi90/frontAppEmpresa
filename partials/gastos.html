@@ -1,8 +1,14 @@
+<!-- partials/gastos.html -->
 <section id="gastos" class="tab-content">
   <h2>Gastos Varios</h2>
+
   <form id="gastos-form">
+    <!-- oculto para modo edición -->
     <input type="hidden" id="gasto-current-id" name="id">
-    <label>Fecha:<input type="date" id="gasto-fecha" name="fecha"></label>
+
+    <label>Fecha:
+      <input type="date" id="gasto-fecha" name="fecha">
+    </label>
 
     <label>Tipo:
       <select id="gasto-tipo" name="tipo">
@@ -14,17 +20,43 @@
       </select>
     </label>
 
-    <label>Importe total (€):<input type="number" step="0.01" id="gasto-total" name="importe_total"></label>
-    <label><input type="checkbox" id="gasto-compartido" name="gasto_compartido"> Gasto Compartido</label>
-    <label>% Deducible:<input type="number" step="0.01" id="gasto-porcentaje" name="porcentaje_deducible" disabled></label>
-    <label>Importe deducible (€):<input type="number" step="0.01" id="gasto-deducible" name="importe_deducible" readonly></label>
+    <!--  IVA  -->
+    <fieldset>
+      <legend>IVA</legend>
 
-    <label><input type="checkbox" id="gasto-dividir" name="dividir_cuatro"> Dividir en 4 años</label>
-    <div id="dividir-info" style="display:none;">
-      <label>Importe/año (€):<input type="number" step="0.01" id="gasto-dividir-importe" name="dividir_importe" readonly></label>
-    </div>
+      <label>% IVA:
+        <input type="number" step="0.01" id="gasto-iva-pct" name="iva_porcentaje" value="21">
+      </label>
 
-    <label>Nota:<textarea id="gasto-nota" name="nota"></textarea></label>
+      <label>Importe BRUTO (con IVA):
+        <input type="number" step="0.01" id="gasto-bruto" name="importe_bruto">
+      </label>
+
+      <label>Importe SIN IVA (€):
+        <input type="number" step="0.01" id="gasto-neto" readonly>
+      </label>
+
+      <label>IVA (€):
+        <input type="number" step="0.01" id="gasto-iva-imp" readonly>
+      </label>
+    </fieldset>
+
+    <!-- deducción -->
+    <label>¿Gasto compartido?
+      <input type="checkbox" id="gasto-compartido" name="gasto_compartido">
+    </label>
+
+    <label>% Deducible:
+      <input type="number" step="0.01" id="gasto-porcentaje" name="porcentaje_deducible" value="100">
+    </label>
+
+    <label>Importe deducible (€):
+      <input type="number" step="0.01" id="gasto-deducible" name="importe_deducible" readonly>
+    </label>
+
+    <label>Nota:
+      <textarea id="gasto-nota" name="nota"></textarea>
+    </label>
 
     <button type="submit" id="gasto-submit-btn">Agregar Gasto</button>
     <button type="button" id="gasto-cancel-btn" style="display:none;">Cancelar</button>
@@ -40,7 +72,7 @@
   <div id="gastos-results"></div>
 
   <div class="summary">
-    <h3>Total: <span id="gastos-total">0.00</span> €</h3>
+    <h3>Total Gastos: <span id="gastos-total">0.00</span> €</h3>
     <button id="gastos-export-btn">Generar Excel</button>
   </div>
 </section>
